@@ -1,10 +1,9 @@
-const CACHE_NAME = 'calc-graos-v1';
+const CACHE_NAME = 'calc-graos-v3-final';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './icon.svg'
 ];
 
 // Instalação: Cacheia os arquivos
@@ -16,7 +15,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Ativação: Limpa caches antigos se houver atualização
+// Ativação: Limpa caches antigos
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -29,7 +28,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: Serve os arquivos do cache quando offline
+// Fetch: Serve arquivos do cache quando offline
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
