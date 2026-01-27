@@ -7,11 +7,13 @@
     <meta name="description" content="Calculadora de Romaneio de Grãos Offline">
     <title>Calculadora de Grãos</title>
     
-    <!-- Link para o Manifesto (Necessário para instalar) -->
+    <!-- Configuração PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icon.svg">
 
     <style>
+        /* --- ESTILOS GERAIS --- */
         :root {
             --primary: #2e7d32;
             --secondary: #f1f8e9;
@@ -27,7 +29,8 @@
             background-color: #e8f5e9;
             color: var(--text);
             margin: 0;
-            padding: 15px; /* Ajuste para mobile */
+            padding: 15px;
+            padding-bottom: 80px;
         }
 
         .container { max-width: 1100px; margin: 0 auto; }
@@ -71,10 +74,10 @@
 
         input, select {
             width: 100%; padding: 12px; border: 1px solid var(--border);
-            border-radius: 8px; font-size: 16px; /* Evita zoom no iOS */
+            border-radius: 8px; font-size: 16px;
             box-sizing: border-box;
             background-color: #fafafa;
-            -webkit-appearance: none; /* Melhor visual mobile */
+            -webkit-appearance: none;
         }
         input:focus, select:focus {
             outline: none; border-color: var(--primary); background-color: #fff;
@@ -104,12 +107,26 @@
             font-size: 1rem; font-weight: bold; cursor: pointer;
             text-transform: uppercase; color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 120px; /* Garante tamanho no mobile */
+            min-width: 120px;
         }
         .btn-calc { background-color: var(--primary); }
         .btn-print { background-color: #455a64; }
         .btn-reset { background-color: var(--danger); }
         .hidden { display: none; }
+
+        /* Botão de Instalar Manual */
+        #installBtn {
+            display: none;
+            background-color: #0277bd;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
 
         /* --- MODAL DE IMPRESSÃO --- */
         .modal-overlay {
@@ -124,7 +141,7 @@
         }
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 
-        /* --- ESTILOS DE IMPRESSÃO --- */
+        /* --- ESTILOS DE IMPRESSÃO (A5) --- */
         @media print {
             @page { size: A5 portrait; margin: 0; }
             body { background-color: white; padding: 0; margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; }
@@ -135,21 +152,29 @@
             .rec-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
             .rec-title { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
             .rec-date { font-size: 10pt; margin-top: 5px; }
+            
             table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
             td { padding: 3px 0; vertical-align: bottom; }
+            
             .col-label { text-align: left; font-weight: bold; width: 40%; }
             .col-val { text-align: right; width: 60%; }
+            
             .section-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; margin-top: 10px; margin-bottom: 5px; }
+            
             .total-box { border: 2px solid #000; padding: 10px; margin-top: 15px; background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
             .total-row { display: flex; justify-content: space-between; align-items: center; }
             .total-big { font-size: 18pt; font-weight: bold; }
             .total-sub { font-size: 14pt; }
+            
             .signature-area { margin-top: 40px; text-align: center; font-size: 10pt; }
             .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
         }
     </style>
 </head>
 <body>
+
+<!-- Botão de Instalação -->
+<div id="installBtn" class="container screen-only">📲 Instalar Aplicativo</div>
 
 <!-- CONTEÚDO DA TELA -->
 <div class="container screen-only">
@@ -301,14 +326,34 @@
 <div id="print-area" class="print-only"></div>
 
 <script>
-    // --- REGISTRO DO SERVICE WORKER (PWA) ---
+    // --- LÓGICA DE INSTALAÇÃO PWA ---
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('App instalado/registrado:', reg.scope))
-                .catch(err => console.log('Falha ao registrar:', err));
+                .then(reg => console.log('SW registrado:', reg.scope))
+                .catch(err => console.log('SW falhou:', err));
         });
     }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', (e) => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('Usuário aceitou instalar');
+            }
+            deferredPrompt = null;
+        });
+    });
 
     // --- LÓGICA DO PROGRAMA ---
     const regras = {
@@ -395,6 +440,7 @@
             let percDesconto = 0;
 
             if (produto === 'milho') {
+                // LÓGICA PROGRESSIVA DO MILHO
                 if (umidadeVal <= 24.8) {
                     percDesconto = excedente * 1.75;
                 } else {
