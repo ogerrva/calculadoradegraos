@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2e7d32">
+    <meta name="description" content="Calculadora de Romaneio de Grãos Offline">
+    <title>Calculadora de Grãos</title>
+    
+    <!-- Link para o Manifesto (Necessário para instalar) -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #f1f8e9;
+            --dark: #1b5e20;
+            --text: #333;
+            --card-bg: #ffffff;
+            --danger: #d32f2f;
+            --border: #ccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9;
+            color: var(--text);
+            margin: 0;
+            padding: 15px; /* Ajuste para mobile */
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* --- ESTILOS DA TELA (DASHBOARD) --- */
+        .screen-only { display: block; }
+        .print-only { display: none; }
+
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { color: var(--dark); margin: 0; font-size: 1.8rem; }
+        p.subtitle { color: #666; font-size: 0.9rem; }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 850px) { .dashboard { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .form-group { margin-bottom: 15px; }
+
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: #444; }
+
+        input, select {
+            width: 100%; padding: 12px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 16px; /* Evita zoom no iOS */
+            box-sizing: border-box;
+            background-color: #fafafa;
+            -webkit-appearance: none; /* Melhor visual mobile */
+        }
+        input:focus, select:focus {
+            outline: none; border-color: var(--primary); background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.15);
+        }
+
+        .input-peso { font-weight: bold; color: var(--dark); letter-spacing: 1px; }
+        .integer-only { background-color: #fffde7; }
+
+        .result-row {
+            display: flex; justify-content: space-between; margin-bottom: 12px;
+            padding-bottom: 8px; border-bottom: 1px dashed #eee; font-size: 1rem;
+        }
+        .result-row.negative { color: var(--danger); }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+            padding: 20px; border-radius: 12px; text-align: center;
+            margin-top: 25px; border: 1px solid #c5e1a5;
+        }
+        .highlight-value { font-size: 2.2rem; font-weight: 800; color: var(--dark); line-height: 1.2; }
+        .highlight-label { font-size: 0.8rem; color: #558b2f; text-transform: uppercase; font-weight: bold; }
+
+        .actions { margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap; }
+        .btn {
+            flex: 1; padding: 15px; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 120px; /* Garante tamanho no mobile */
+        }
+        .btn-calc { background-color: var(--primary); }
+        .btn-print { background-color: #455a64; }
+        .btn-reset { background-color: var(--danger); }
+        .hidden { display: none; }
+
+        /* --- MODAL DE IMPRESSÃO --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 10px;
+            text-align: center; width: 90%; max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+        /* --- ESTILOS DE IMPRESSÃO --- */
+        @media print {
+            @page { size: A5 portrait; margin: 0; }
+            body { background-color: white; padding: 0; margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            
+            .receipt-container { width: 100%; padding: 10mm; box-sizing: border-box; page-break-after: always; font-size: 12pt; }
+            .rec-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .rec-title { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
+            .rec-date { font-size: 10pt; margin-top: 5px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            td { padding: 3px 0; vertical-align: bottom; }
+            .col-label { text-align: left; font-weight: bold; width: 40%; }
+            .col-val { text-align: right; width: 60%; }
+            .section-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; margin-top: 10px; margin-bottom: 5px; }
+            .total-box { border: 2px solid #000; padding: 10px; margin-top: 15px; background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            .total-row { display: flex; justify-content: space-between; align-items: center; }
+            .total-big { font-size: 18pt; font-weight: bold; }
+            .total-sub { font-size: 14pt; }
+            .signature-area { margin-top: 40px; text-align: center; font-size: 10pt; }
+            .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- CONTEÚDO DA TELA -->
+<div class="container screen-only">
+    <header>
+        <h1>Romaneio de Classificação</h1>
+        <p class="subtitle">Sistema de Contingência Offline</p>
+    </header>
+
+    <div class="dashboard">
+        <!-- ESQUERDA -->
+        <div class="card">
+            <div class="card-header">📝 Dados da Carga</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Produtor</label>
+                    <input type="text" id="produtor" class="nav-input">
+                </div>
+                <div class="form-group">
+                    <label>Motorista</label>
+                    <input type="text" id="motorista" class="nav-input">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Produto / Cultura</label>
+                <select id="produto" class="nav-input" onchange="atualizarInterface()">
+                    <option value="soja">🌱 SOJA (Base 14%)</option>
+                    <option value="milho">🌽 MILHO (Base 14% - Progressivo)</option>
+                    <option value="trigo">🌾 TRIGO (Base 13%)</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Peso Bruto (kg)</label>
+                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this)">
+                </div>
+                <div class="form-group">
+                    <label>Tara (kg)</label>
+                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this)">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Umidade (%)</label>
+                    <input type="number" id="umidade" class="nav-input" step="0.1" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                    <label>Impureza (%)</label>
+                    <input type="number" id="impureza" class="nav-input" step="0.1" placeholder="0.0">
+                </div>
+            </div>
+
+            <!-- CAMPOS DINÂMICOS -->
+            <div id="campos-especificos">
+                <div id="spec-soja" class="form-row hidden">
+                    <div class="form-group">
+                        <label>Ardidos (%)</label>
+                        <input type="number" id="soja_ardidos" class="nav-input" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Esverdeados (%)</label>
+                        <input type="number" id="soja_esverdeados" class="nav-input" step="0.1">
+                    </div>
+                </div>
+
+                <div id="spec-milho" class="form-row hidden">
+                    <div class="form-group">
+                        <label>Ardidos (%)</label>
+                        <input type="number" id="milho_ardidos" class="nav-input" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Brotados (Inteiro)</label>
+                        <input type="number" id="milho_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                    </div>
+                </div>
+
+                <div id="spec-trigo" class="form-row hidden">
+                    <div class="form-group">
+                        <label>Triguilho (Inteiro)</label>
+                        <input type="number" id="trigo_triguilho" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                    </div>
+                    <div class="form-group">
+                        <label>Grãos Brotados (Inteiro)</label>
+                        <input type="number" id="trigo_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-calc" onclick="calcular()">CALCULAR (ENTER)</button>
+        </div>
+
+        <!-- DIREITA -->
+        <div class="card">
+            <div class="card-header">
+                <span>📊 Resultados</span>
+                <span style="font-size: 0.8rem; font-weight: normal;" id="data-hora"></span>
+            </div>
+
+            <div class="result-row">
+                <span>Peso Carga</span>
+                <span style="font-weight: bold;" id="resPesoCarga">0 kg</span>
+            </div>
+            <div class="result-row">
+                <span>Sacas Brutas</span>
+                <span style="font-weight: bold;" id="resSacasBrutas">0 sc</span>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <div style="font-size: 0.9rem; color: #777; margin-bottom: 10px;">Descontos:</div>
+
+            <div id="lista-descontos">
+                <div style="text-align: center; color: #999; font-style: italic;">Aguardando cálculo...</div>
+            </div>
+
+            <div class="highlight-box">
+                <div class="highlight-label">PESO LÍQUIDO FINAL</div>
+                <div class="highlight-value" id="resPesoLiquido">0 kg</div>
+                <div style="margin-top: 10px; font-size: 1.5rem; font-weight: bold; color: var(--dark);">
+                    <span id="resSacasLiquidas">0</span> Sacas
+                </div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
+                <button class="btn btn-reset" onclick="resetar()">🔄 Concluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE QUANTIDADE DE CÓPIAS -->
+<div id="modalPrint" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Imprimir Romaneio</h3>
+        <p>Quantas cópias deseja?</p>
+        <input type="number" id="qtdCopias" value="1" min="1" max="5" style="font-size: 1.5rem; text-align: center; width: 80px;">
+        
+        <div class="modal-actions">
+            <button class="btn btn-reset" onclick="fecharModalImpressao()">Cancelar</button>
+            <button class="btn btn-calc" onclick="confirmarImpressao()">IMPRIMIR</button>
+        </div>
+    </div>
+</div>
+
+<!-- ÁREA DE IMPRESSÃO -->
+<div id="print-area" class="print-only"></div>
+
+<script>
+    // --- REGISTRO DO SERVICE WORKER (PWA) ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('App instalado/registrado:', reg.scope))
+                .catch(err => console.log('Falha ao registrar:', err));
+        });
+    }
+
+    // --- LÓGICA DO PROGRAMA ---
+    const regras = {
+        soja: { umidadeBase: 14.0, umidadeFator: 1.60, ardidosBase: 8.0, esverdeadosBase: 8.0 },
+        milho: { umidadeBase: 14.0, umidadeFator: 1.75, ardidosBase: 6.0 },
+        trigo: { umidadeBase: 13.0, umidadeFator: 1.75 }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = document.querySelectorAll('.nav-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const nextInput = inputs[index + 1];
+                    if (nextInput && !nextInput.parentElement.parentElement.classList.contains('hidden')) {
+                        nextInput.focus();
+                    } else {
+                        calcular();
+                    }
+                }
+            });
+        });
+    });
+
+    function mascaraPeso(input) {
+        let valor = input.value.replace(/\D/g, "");
+        valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        input.value = valor;
+    }
+
+    function getPesoLimpo(id) {
+        const raw = document.getElementById(id).value;
+        const clean = raw.replace(/\./g, '').replace(/,/g, ''); 
+        return parseInt(clean) || 0;
+    }
+
+    function getFloat(id) {
+        let val = document.getElementById(id).value;
+        if (!val) return 0;
+        val = val.replace(',', '.');
+        return parseFloat(val) || 0;
+    }
+
+    function forcarInteiro(input) { input.value = Math.floor(input.value); }
+    function formatKg(num) { return num.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+    function formatDec(num) { return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function atualizarInterface() {
+        const produto = document.getElementById('produto').value;
+        ['spec-soja', 'spec-milho', 'spec-trigo'].forEach(id => document.getElementById(id).classList.add('hidden'));
+        document.getElementById('spec-' + produto).classList.remove('hidden');
+        
+        const agora = new Date();
+        document.getElementById('data-hora').innerText = agora.toLocaleDateString() + ' ' + agora.toLocaleTimeString().slice(0,5);
+        calcular();
+    }
+
+    let dadosImpressao = {};
+
+    function calcular() {
+        const produto = document.getElementById('produto').value;
+        const pesoBruto = getPesoLimpo('pesoBruto');
+        const tara = getPesoLimpo('tara');
+        
+        let pesoCarga = pesoBruto - tara;
+        if (pesoCarga < 0) pesoCarga = 0;
+
+        let listaDescontos = [];
+        let totalKgDesconto = 0;
+
+        const impurezaPerc = getFloat('impureza');
+        if (impurezaPerc > 0) {
+            const descKg = pesoCarga * (impurezaPerc / 100);
+            listaDescontos.push({ nome: "Impureza", perc: impurezaPerc, kg: descKg });
+            totalKgDesconto += descKg;
+        }
+
+        const umidadeVal = getFloat('umidade');
+        const regra = regras[produto];
+        
+        if (umidadeVal > regra.umidadeBase) {
+            const excedente = umidadeVal - regra.umidadeBase;
+            let percDesconto = 0;
+
+            if (produto === 'milho') {
+                if (umidadeVal <= 24.8) {
+                    percDesconto = excedente * 1.75;
+                } else {
+                    percDesconto = (excedente * 2.0) - 2.7;
+                }
+            } else {
+                percDesconto = excedente * regra.umidadeFator;
+            }
+
+            const descKg = pesoCarga * (percDesconto / 100);
+            listaDescontos.push({ nome: `Umidade (${formatDec(umidadeVal)}%)`, perc: percDesconto, kg: descKg });
+            totalKgDesconto += descKg;
+        }
+
+        if (produto === 'soja') {
+            const ardidos = getFloat('soja_ardidos');
+            if (ardidos > regra.ardidosBase) {
+                const perc = ardidos - regra.ardidosBase;
+                const kg = pesoCarga * (perc / 100);
+                listaDescontos.push({ nome: `Ardidos (${formatDec(ardidos)}%)`, perc: perc, kg: kg });
+                totalKgDesconto += kg;
+            }
+            const esverdeados = getFloat('soja_esverdeados');
+            if (esverdeados > regra.esverdeadosBase) {
+                const perc = esverdeados - regra.esverdeadosBase;
+                const kg = pesoCarga * (perc / 100);
+                listaDescontos.push({ nome: `Esverdeados (${formatDec(esverdeados)}%)`, perc: perc, kg: kg });
+                totalKgDesconto += kg;
+            }
+        }
+
+        if (produto === 'milho') {
+            const ardidos = getFloat('milho_ardidos');
+            if (ardidos > regra.ardidosBase) {
+                const perc = ardidos - regra.ardidosBase;
+                const kg = pesoCarga * (perc / 100);
+                listaDescontos.push({ nome: `Ardidos (${formatDec(ardidos)}%)`, perc: perc, kg: kg });
+                totalKgDesconto += kg;
+            }
+            const brotados = Math.floor(getFloat('milho_brotados'));
+            if (brotados > 0) {
+                const kg = pesoCarga * (brotados / 100);
+                listaDescontos.push({ nome: "Brotados", perc: brotados, kg: kg });
+                totalKgDesconto += kg;
+            }
+        }
+
+        if (produto === 'trigo') {
+            const triguilho = Math.floor(getFloat('trigo_triguilho'));
+            if (triguilho > 0) {
+                const kg = pesoCarga * (triguilho / 100);
+                listaDescontos.push({ nome: "Triguilho", perc: triguilho, kg: kg });
+                totalKgDesconto += kg;
+            }
+            const brotados = Math.floor(getFloat('trigo_brotados'));
+            if (brotados > 0) {
+                const kg = pesoCarga * (brotados / 100);
+                listaDescontos.push({ nome: "Grãos Brotados", perc: brotados, kg: kg });
+                totalKgDesconto += kg;
+            }
+        }
+
+        const pesoLiquido = pesoCarga - totalKgDesconto;
+        const sacasBrutas = Math.round(pesoCarga / 60);
+        const sacasLiquidas = Math.round(pesoLiquido / 60);
+
+        document.getElementById('resPesoCarga').innerText = formatKg(pesoCarga) + ' kg';
+        document.getElementById('resSacasBrutas').innerText = sacasBrutas + ' sc';
+        document.getElementById('resPesoLiquido').innerText = formatKg(pesoLiquido) + ' kg';
+        document.getElementById('resSacasLiquidas').innerText = sacasLiquidas;
+
+        const containerLista = document.getElementById('lista-descontos');
+        containerLista.innerHTML = '';
+        if (listaDescontos.length === 0) {
+            containerLista.innerHTML = '<div style="text-align:center; color:#888;">Nenhum desconto aplicado.</div>';
+        } else {
+            listaDescontos.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'result-row negative';
+                div.innerHTML = `<span>${item.nome} <small>(${formatDec(item.perc)}%)</small></span><span>- ${formatKg(item.kg)} kg</span>`;
+                containerLista.appendChild(div);
+            });
+        }
+
+        dadosImpressao = {
+            produtor: document.getElementById('produtor').value || '---',
+            motorista: document.getElementById('motorista').value || '---',
+            produto: produto.toUpperCase(),
+            bruto: pesoBruto,
+            tara: tara,
+            liquido: pesoCarga,
+            sacasBrutas: sacasBrutas,
+            descontos: listaDescontos,
+            pesoFinal: pesoLiquido,
+            sacasFinais: sacasLiquidas,
+            data: document.getElementById('data-hora').innerText
+        };
+    }
+
+    function abrirModalImpressao() {
+        calcular();
+        document.getElementById('modalPrint').style.display = 'flex';
+        document.getElementById('qtdCopias').focus();
+    }
+
+    function fecharModalImpressao() {
+        document.getElementById('modalPrint').style.display = 'none';
+    }
+
+    function confirmarImpressao() {
+        const qtd = parseInt(document.getElementById('qtdCopias').value) || 1;
+        gerarHTMLImpressao(qtd);
+        fecharModalImpressao();
+        window.print();
+    }
+
+    function gerarHTMLImpressao(copias) {
+        const area = document.getElementById('print-area');
+        area.innerHTML = '';
+
+        const template = `
+            <div class="receipt-container">
+                <div class="rec-header">
+                    <div class="rec-title">ROMANEIO DE CLASSIFICAÇÃO</div>
+                    <div class="rec-date">${dadosImpressao.data}</div>
+                </div>
+                
+                <table>
+                    <tr><td class="col-label">PRODUTOR:</td><td class="col-val" style="text-align:left">${dadosImpressao.produtor}</td></tr>
+                    <tr><td class="col-label">MOTORISTA:</td><td class="col-val" style="text-align:left">${dadosImpressao.motorista}</td></tr>
+                    <tr><td class="col-label">PRODUTO:</td><td class="col-val" style="text-align:left">${dadosImpressao.produto}</td></tr>
+                </table>
+                
+                <div class="section-title">PESAGEM</div>
+                <table>
+                    <tr><td class="col-label">PESO BRUTO:</td><td class="col-val">${formatKg(dadosImpressao.bruto)} kg</td></tr>
+                    <tr><td class="col-label">TARA:</td><td class="col-val">${formatKg(dadosImpressao.tara)} kg</td></tr>
+                    <tr><td class="col-label" style="font-size:1.1em">PESO CARGA:</td><td class="col-val" style="font-weight:bold; font-size:1.1em">${formatKg(dadosImpressao.liquido)} kg</td></tr>
+                    <tr><td class="col-label">SACAS BRUTAS:</td><td class="col-val">${dadosImpressao.sacasBrutas} sc</td></tr>
+                </table>
+                
+                <div class="section-title">DESCONTOS</div>
+                <table>
+                    ${dadosImpressao.descontos.length === 0 ? '<tr><td colspan="2" style="text-align:center">- Sem Descontos -</td></tr>' : ''}
+                    ${dadosImpressao.descontos.map(d => `
+                        <tr>
+                            <td class="col-label" style="font-weight:normal">${d.nome} (${formatDec(d.perc)}%)</td>
+                            <td class="col-val">- ${formatKg(d.kg)} kg</td>
+                        </tr>
+                    `).join('')}
+                </table>
+                
+                <div class="total-box">
+                    <div class="total-row">
+                        <span class="total-sub">LÍQUIDO:</span>
+                        <span class="total-sub" style="font-weight:bold">${formatKg(dadosImpressao.pesoFinal)} kg</span>
+                    </div>
+                    <div class="total-row" style="margin-top:5px">
+                        <span class="total-big">TOTAL:</span>
+                        <span class="total-big">${dadosImpressao.sacasFinais} SACAS</span>
+                    </div>
+                </div>
+                
+                <div class="signature-area">
+                    <div class="signature-line"></div>
+                    Assinatura do Responsável / Classificador
+                </div>
+            </div>
+        `;
+
+        for (let i = 0; i < copias; i++) {
+            area.innerHTML += template;
+        }
+    }
+
+    function resetar() {
+        if(confirm("Limpar tudo e iniciar novo?")) {
+            document.querySelectorAll('input').forEach(input => input.value = '');
+            document.getElementById('produto').selectedIndex = 0;
+            atualizarInterface();
+            window.scrollTo(0, 0);
+        }
+    }
+
+    atualizarInterface();
+</script>
+
+</body>
+</html>
