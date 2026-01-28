@@ -7,13 +7,11 @@
     <meta name="description" content="Calculadora de Romaneio de Grãos Offline">
     <title>Calculadora de Grãos</title>
     
-    <!-- Configuração PWA -->
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="icon" href="img/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/logo.png">
 
     <style>
-        /* --- ESTILOS GERAIS --- */
         :root {
             --primary: #2e7d32;
             --secondary: #f1f8e9;
@@ -21,6 +19,7 @@
             --text: #333;
             --card-bg: #ffffff;
             --danger: #d32f2f;
+            --info: #0288d1; /* Cor do botão Salvar */
             --border: #ccc;
         }
 
@@ -30,12 +29,10 @@
             color: var(--text);
             margin: 0;
             padding: 15px;
-            padding-bottom: 80px;
+            padding-bottom: 100px;
         }
 
         .container { max-width: 1100px; margin: 0 auto; }
-
-        /* --- ESTILOS DA TELA (DASHBOARD) --- */
         .screen-only { display: block; }
         .print-only { display: none; }
 
@@ -56,6 +53,7 @@
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
         }
 
         .card-header {
@@ -75,8 +73,7 @@
         input, select {
             width: 100%; padding: 12px; border: 1px solid var(--border);
             border-radius: 8px; font-size: 16px;
-            box-sizing: border-box;
-            background-color: #fafafa;
+            box-sizing: border-box; background-color: #fafafa;
             -webkit-appearance: none;
         }
         input:focus, select:focus {
@@ -107,28 +104,48 @@
             font-size: 1rem; font-weight: bold; cursor: pointer;
             text-transform: uppercase; color: white;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 120px;
+            min-width: 120px; transition: background-color 0.3s;
         }
         .btn-calc { background-color: var(--primary); }
         .btn-print { background-color: #455a64; }
-        .btn-reset { background-color: var(--danger); }
+        
+        /* Botão Dinâmico (Salvar/Concluir) */
+        .btn-action-conclude { background-color: var(--danger); }
+        .btn-action-save { background-color: var(--info); }
+
         .hidden { display: none; }
 
-        /* Botão de Instalar Manual */
-        #installBtn {
-            display: none;
-            background-color: #0277bd;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        /* --- TOAST DE INSTALAÇÃO --- */
+        #installToast {
+            position: fixed; bottom: 20px; right: 20px;
+            background-color: #333; color: white;
+            padding: 15px 20px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none; align-items: center; gap: 15px;
+            z-index: 2000; animation: slideIn 0.5s ease-out;
         }
+        @keyframes slideIn { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        #installToast button {
+            background: none; border: none; color: #4caf50;
+            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
+        }
+        #installToast .close-toast { color: #aaa; font-size: 1.2rem; margin-left: 10px; }
 
-        /* --- MODAL DE IMPRESSÃO --- */
+        /* --- LISTA DE SALVOS --- */
+        .saved-item {
+            background: #f5f5f5; border-left: 5px solid var(--info);
+            padding: 10px; margin-bottom: 10px; border-radius: 4px;
+            cursor: pointer; transition: background 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .saved-item:hover { background: #e3f2fd; }
+        .saved-info { font-size: 0.9rem; }
+        .saved-info strong { display: block; color: #333; }
+        .saved-info small { color: #666; }
+        .saved-badge { background: var(--info); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+
+        /* --- MODAL IMPRESSÃO --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); display: none;
@@ -141,31 +158,25 @@
         }
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 
-        /* --- ESTILOS DE IMPRESSÃO (A5) --- */
+        /* --- IMPRESSÃO --- */
         @media print {
             @page { size: A5 portrait; margin: 0; }
-            body { background-color: white; padding: 0; margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; }
+            body { background-color: white; padding: 0; margin: 0; font-family: Arial, sans-serif; color: #000; }
             .screen-only { display: none !important; }
             .print-only { display: block !important; }
-            
             .receipt-container { width: 100%; padding: 10mm; box-sizing: border-box; page-break-after: always; font-size: 12pt; }
             .rec-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
             .rec-title { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
             .rec-date { font-size: 10pt; margin-top: 5px; }
-            
             table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
             td { padding: 3px 0; vertical-align: bottom; }
-            
             .col-label { text-align: left; font-weight: bold; width: 40%; }
             .col-val { text-align: right; width: 60%; }
-            
             .section-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; margin-top: 10px; margin-bottom: 5px; }
-            
             .total-box { border: 2px solid #000; padding: 10px; margin-top: 15px; background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
             .total-row { display: flex; justify-content: space-between; align-items: center; }
             .total-big { font-size: 18pt; font-weight: bold; }
             .total-sub { font-size: 14pt; }
-            
             .signature-area { margin-top: 40px; text-align: center; font-size: 10pt; }
             .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
         }
@@ -173,8 +184,12 @@
 </head>
 <body>
 
-<!-- Botão de Instalação -->
-<div id="installBtn" class="container screen-only">📲 Instalar Aplicativo</div>
+<!-- TOAST DE INSTALAÇÃO -->
+<div id="installToast">
+    <span>Instalar App?</span>
+    <button id="btnInstallConfirm">Instalar</button>
+    <span class="close-toast" onclick="document.getElementById('installToast').style.display='none'">&times;</span>
+</div>
 
 <!-- CONTEÚDO DA TELA -->
 <div class="container screen-only">
@@ -190,12 +205,12 @@
             
             <div class="form-row">
                 <div class="form-group">
-                    <label>Produtor</label>
-                    <input type="text" id="produtor" class="nav-input">
+                    <label>Produtor *</label>
+                    <input type="text" id="produtor" class="nav-input" oninput="verificarEstadoBotao()">
                 </div>
                 <div class="form-group">
                     <label>Motorista</label>
-                    <input type="text" id="motorista" class="nav-input">
+                    <input type="text" id="motorista" class="nav-input" oninput="verificarEstadoBotao()">
                 </div>
             </div>
 
@@ -211,11 +226,11 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Peso Bruto (kg)</label>
-                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this)">
+                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao()">
                 </div>
                 <div class="form-group">
                     <label>Tara (kg)</label>
-                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this)">
+                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao()">
                 </div>
             </div>
 
@@ -270,39 +285,48 @@
         </div>
 
         <!-- DIREITA -->
-        <div class="card">
-            <div class="card-header">
-                <span>📊 Resultados</span>
-                <span style="font-size: 0.8rem; font-weight: normal;" id="data-hora"></span>
-            </div>
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <span>📊 Resultados</span>
+                    <span style="font-size: 0.8rem; font-weight: normal;" id="data-hora"></span>
+                </div>
 
-            <div class="result-row">
-                <span>Peso Carga</span>
-                <span style="font-weight: bold;" id="resPesoCarga">0 kg</span>
-            </div>
-            <div class="result-row">
-                <span>Sacas Brutas</span>
-                <span style="font-weight: bold;" id="resSacasBrutas">0 sc</span>
-            </div>
+                <div class="result-row">
+                    <span>Peso Carga</span>
+                    <span style="font-weight: bold;" id="resPesoCarga">0 kg</span>
+                </div>
+                <div class="result-row">
+                    <span>Sacas Brutas</span>
+                    <span style="font-weight: bold;" id="resSacasBrutas">0 sc</span>
+                </div>
 
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
-            <div style="font-size: 0.9rem; color: #777; margin-bottom: 10px;">Descontos:</div>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+                <div style="font-size: 0.9rem; color: #777; margin-bottom: 10px;">Descontos:</div>
 
-            <div id="lista-descontos">
-                <div style="text-align: center; color: #999; font-style: italic;">Aguardando cálculo...</div>
-            </div>
+                <div id="lista-descontos">
+                    <div style="text-align: center; color: #999; font-style: italic;">Aguardando cálculo...</div>
+                </div>
 
-            <div class="highlight-box">
-                <div class="highlight-label">PESO LÍQUIDO FINAL</div>
-                <div class="highlight-value" id="resPesoLiquido">0 kg</div>
-                <div style="margin-top: 10px; font-size: 1.5rem; font-weight: bold; color: var(--dark);">
-                    <span id="resSacasLiquidas">0</span> Sacas
+                <div class="highlight-box">
+                    <div class="highlight-label">PESO LÍQUIDO FINAL</div>
+                    <div class="highlight-value" id="resPesoLiquido">0 kg</div>
+                    <div style="margin-top: 10px; font-size: 1.5rem; font-weight: bold; color: var(--dark);">
+                        <span id="resSacasLiquidas">0</span> Sacas
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
+                    <!-- Botão Dinâmico -->
+                    <button id="btnAction" class="btn btn-action-conclude" onclick="executarAcaoPrincipal()">🔄 Concluir</button>
                 </div>
             </div>
 
-            <div class="actions">
-                <button class="btn btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
-                <button class="btn btn-reset" onclick="resetar()">🔄 Concluir</button>
+            <!-- LISTA DE CARGAS PENDENTES -->
+            <div id="cardPendentes" class="card hidden">
+                <div class="card-header">💾 Cargas Pendentes</div>
+                <div id="listaSalvos"></div>
             </div>
         </div>
     </div>
@@ -314,7 +338,6 @@
         <h3>Imprimir Romaneio</h3>
         <p>Quantas cópias deseja?</p>
         <input type="number" id="qtdCopias" value="1" min="1" max="5" style="font-size: 1.5rem; text-align: center; width: 80px;">
-        
         <div class="modal-actions">
             <button class="btn btn-reset" onclick="fecharModalImpressao()">Cancelar</button>
             <button class="btn btn-calc" onclick="confirmarImpressao()">IMPRIMIR</button>
@@ -326,43 +349,47 @@
 <div id="print-area" class="print-only"></div>
 
 <script>
-    // --- LÓGICA DE INSTALAÇÃO PWA ---
+    // --- LÓGICA DE INSTALAÇÃO PWA (TOAST) ---
     let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
+    const installToast = document.getElementById('installToast');
+    const btnInstallConfirm = document.getElementById('btnInstallConfirm');
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('SW registrado:', reg.scope))
-                .catch(err => console.log('SW falhou:', err));
+            navigator.serviceWorker.register('./sw.js');
         });
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installBtn.style.display = 'block';
+        installToast.style.display = 'flex';
     });
 
-    installBtn.addEventListener('click', (e) => {
-        installBtn.style.display = 'none';
+    btnInstallConfirm.addEventListener('click', () => {
+        installToast.style.display = 'none';
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('Usuário aceitou instalar');
-            }
             deferredPrompt = null;
         });
     });
 
-    // --- LÓGICA DO PROGRAMA ---
+    // --- VARIÁVEIS GLOBAIS ---
+    let idEdicaoAtual = null; // Se não for null, estamos editando um salvo
+    let dadosImpressao = {};
+
     const regras = {
         soja: { umidadeBase: 14.0, umidadeFator: 1.60, ardidosBase: 8.0, esverdeadosBase: 8.0 },
         milho: { umidadeBase: 14.0, umidadeFator: 1.75, ardidosBase: 6.0 },
         trigo: { umidadeBase: 13.0, umidadeFator: 1.75 }
     };
 
+    // --- INICIALIZAÇÃO ---
     document.addEventListener('DOMContentLoaded', () => {
+        renderizarListaSalvos();
+        atualizarInterface();
+        
+        // Navegação com Enter
         const inputs = document.querySelectorAll('.nav-input');
         inputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
@@ -379,25 +406,186 @@
         });
     });
 
+    // --- LÓGICA DE BOTÃO (SALVAR vs CONCLUIR) ---
+    function verificarEstadoBotao() {
+        const bruto = getPesoLimpo('pesoBruto');
+        const tara = getPesoLimpo('tara');
+        const btn = document.getElementById('btnAction');
+
+        // Lógica: Se tem UM peso mas não o outro -> Modo Salvar
+        // Se tem OS DOIS pesos -> Modo Concluir
+        // Se não tem NENHUM -> Modo Concluir (mas vai validar vazio)
+        
+        const temBruto = bruto > 0;
+        const temTara = tara > 0;
+
+        if ((temBruto && !temTara) || (!temBruto && temTara)) {
+            // Modo Salvar Temporário
+            btn.innerText = "💾 Salvar Temp.";
+            btn.className = "btn btn-action-save";
+            btn.onclick = salvarTemporario;
+        } else {
+            // Modo Concluir
+            btn.innerText = "🔄 Concluir";
+            btn.className = "btn btn-action-conclude";
+            btn.onclick = concluirRomaneio;
+        }
+    }
+
+    function salvarTemporario() {
+        const produtor = document.getElementById('produtor').value.trim();
+        const motorista = document.getElementById('motorista').value.trim();
+        
+        if (!produtor && !motorista) {
+            alert("Para salvar temporariamente, informe o Nome do Produtor ou Motorista.");
+            document.getElementById('produtor').focus();
+            return;
+        }
+
+        const dados = capturarDadosFormulario();
+        // Gera ID único se não estiver editando
+        dados.id = idEdicaoAtual || Date.now();
+        dados.timestamp = new Date().toLocaleString();
+
+        // Salvar no LocalStorage
+        let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        
+        // Se estiver editando, remove o antigo para substituir
+        if (idEdicaoAtual) {
+            salvos = salvos.filter(item => item.id !== idEdicaoAtual);
+        }
+        
+        salvos.push(dados);
+        localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+
+        alert("Carga salva temporariamente!");
+        limparFormulario();
+        renderizarListaSalvos();
+    }
+
+    function concluirRomaneio() {
+        if(confirm("Deseja concluir este romaneio?")) {
+            // Se estava editando um salvo, remove ele da lista pois foi concluído
+            if (idEdicaoAtual) {
+                let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+                salvos = salvos.filter(item => item.id !== idEdicaoAtual);
+                localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+            }
+            
+            limparFormulario();
+            renderizarListaSalvos();
+            window.scrollTo(0, 0);
+        }
+    }
+
+    function renderizarListaSalvos() {
+        const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        const container = document.getElementById('listaSalvos');
+        const card = document.getElementById('cardPendentes');
+
+        container.innerHTML = '';
+
+        if (salvos.length === 0) {
+            card.classList.add('hidden');
+            return;
+        }
+
+        card.classList.remove('hidden');
+        
+        salvos.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'saved-item';
+            
+            // Define qual peso foi salvo
+            let infoPeso = '';
+            if (item.pesoBruto) infoPeso = `Bruto: ${item.pesoBruto}`;
+            if (item.tara) infoPeso = `Tara: ${item.tara}`;
+
+            div.innerHTML = `
+                <div class="saved-info">
+                    <strong>${item.produtor || item.motorista || 'Sem Nome'}</strong>
+                    <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
+                </div>
+                <div class="saved-badge">${infoPeso}</div>
+            `;
+            
+            div.onclick = () => carregarSalvo(item);
+            container.appendChild(div);
+        });
+    }
+
+    function carregarSalvo(item) {
+        if(!confirm("Carregar dados desta carga pendente?")) return;
+
+        idEdicaoAtual = item.id;
+        
+        // Preencher campos
+        document.getElementById('produtor').value = item.produtor;
+        document.getElementById('motorista').value = item.motorista;
+        document.getElementById('produto').value = item.produto;
+        document.getElementById('pesoBruto').value = item.pesoBruto;
+        document.getElementById('tara').value = item.tara;
+        document.getElementById('umidade').value = item.umidade;
+        document.getElementById('impureza').value = item.impureza;
+        
+        // Específicos
+        document.getElementById('soja_ardidos').value = item.soja_ardidos;
+        document.getElementById('soja_esverdeados').value = item.soja_esverdeados;
+        document.getElementById('milho_ardidos').value = item.milho_ardidos;
+        document.getElementById('milho_brotados').value = item.milho_brotados;
+        document.getElementById('trigo_triguilho').value = item.trigo_triguilho;
+        document.getElementById('trigo_brotados').value = item.trigo_brotados;
+
+        atualizarInterface();
+        verificarEstadoBotao();
+        
+        // Rola para o topo
+        window.scrollTo(0, 0);
+    }
+
+    function capturarDadosFormulario() {
+        return {
+            produtor: document.getElementById('produtor').value,
+            motorista: document.getElementById('motorista').value,
+            produto: document.getElementById('produto').value,
+            pesoBruto: document.getElementById('pesoBruto').value,
+            tara: document.getElementById('tara').value,
+            umidade: document.getElementById('umidade').value,
+            impureza: document.getElementById('impureza').value,
+            soja_ardidos: document.getElementById('soja_ardidos').value,
+            soja_esverdeados: document.getElementById('soja_esverdeados').value,
+            milho_ardidos: document.getElementById('milho_ardidos').value,
+            milho_brotados: document.getElementById('milho_brotados').value,
+            trigo_triguilho: document.getElementById('trigo_triguilho').value,
+            trigo_brotados: document.getElementById('trigo_brotados').value
+        };
+    }
+
+    function limparFormulario() {
+        document.querySelectorAll('input').forEach(input => input.value = '');
+        document.getElementById('produto').selectedIndex = 0;
+        idEdicaoAtual = null;
+        atualizarInterface();
+        verificarEstadoBotao();
+    }
+
+    // --- FUNÇÕES AUXILIARES ---
     function mascaraPeso(input) {
         let valor = input.value.replace(/\D/g, "");
         valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         input.value = valor;
     }
-
     function getPesoLimpo(id) {
         const raw = document.getElementById(id).value;
         const clean = raw.replace(/\./g, '').replace(/,/g, ''); 
         return parseInt(clean) || 0;
     }
-
     function getFloat(id) {
         let val = document.getElementById(id).value;
         if (!val) return 0;
         val = val.replace(',', '.');
         return parseFloat(val) || 0;
     }
-
     function forcarInteiro(input) { input.value = Math.floor(input.value); }
     function formatKg(num) { return num.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
     function formatDec(num) { return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -411,8 +599,6 @@
         document.getElementById('data-hora').innerText = agora.toLocaleDateString() + ' ' + agora.toLocaleTimeString().slice(0,5);
         calcular();
     }
-
-    let dadosImpressao = {};
 
     function calcular() {
         const produto = document.getElementById('produto').value;
@@ -440,7 +626,6 @@
             let percDesconto = 0;
 
             if (produto === 'milho') {
-                // LÓGICA PROGRESSIVA DO MILHO
                 if (umidadeVal <= 24.8) {
                     percDesconto = excedente * 1.75;
                 } else {
@@ -615,17 +800,6 @@
             area.innerHTML += template;
         }
     }
-
-    function resetar() {
-        if(confirm("Limpar tudo e iniciar novo?")) {
-            document.querySelectorAll('input').forEach(input => input.value = '');
-            document.getElementById('produto').selectedIndex = 0;
-            atualizarInterface();
-            window.scrollTo(0, 0);
-        }
-    }
-
-    atualizarInterface();
 </script>
 
 </body>
