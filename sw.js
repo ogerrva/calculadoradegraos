@@ -1,12 +1,11 @@
-const CACHE_NAME = 'calc-graos-v3-final';
+const CACHE_NAME = 'calc-graos-v6-save-system';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg'
+  './img/logo.png'
 ];
 
-// Instalação: Cacheia os arquivos
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -15,7 +14,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Ativação: Limpa caches antigos
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
@@ -28,7 +26,6 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: Serve arquivos do cache quando offline
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
