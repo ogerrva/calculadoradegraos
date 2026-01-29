@@ -19,7 +19,7 @@
             --text: #333;
             --card-bg: #ffffff;
             --danger: #d32f2f;
-            --info: #0288d1; /* Cor do botão Salvar */
+            --info: #0288d1;
             --border: #ccc;
         }
 
@@ -109,7 +109,6 @@
         .btn-calc { background-color: var(--primary); }
         .btn-print { background-color: #455a64; }
         
-        /* Botão Dinâmico (Salvar/Concluir) */
         .btn-action-conclude { background-color: var(--danger); }
         .btn-action-save { background-color: var(--info); }
 
@@ -140,10 +139,21 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         .saved-item:hover { background: #e3f2fd; }
+        .saved-content { flex: 1; }
         .saved-info { font-size: 0.9rem; }
         .saved-info strong { display: block; color: #333; }
         .saved-info small { color: #666; }
-        .saved-badge { background: var(--info); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+        .saved-badge { background: var(--info); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; display: inline-block; margin-top: 4px;}
+        
+        /* Botão Excluir Item */
+        .delete-btn {
+            background: #ffcdd2; color: #c62828; border: none;
+            width: 35px; height: 35px; border-radius: 50%;
+            font-weight: bold; cursor: pointer; margin-left: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .delete-btn:hover { background: #ef9a9a; }
 
         /* --- MODAL IMPRESSÃO --- */
         .modal-overlay {
@@ -249,18 +259,18 @@
             <div id="campos-especificos">
                 <div id="spec-soja" class="form-row hidden">
                     <div class="form-group">
-                        <label>Ardidos (%)</label>
+                        <label>Ardidos (%) <small>Base 8%</small></label>
                         <input type="number" id="soja_ardidos" class="nav-input" step="0.1">
                     </div>
                     <div class="form-group">
-                        <label>Esverdeados (%)</label>
+                        <label>Esverdeados (%) <small>Base 8%</small></label>
                         <input type="number" id="soja_esverdeados" class="nav-input" step="0.1">
                     </div>
                 </div>
 
                 <div id="spec-milho" class="form-row hidden">
                     <div class="form-group">
-                        <label>Ardidos (%)</label>
+                        <label>Ardidos (%) <small>Base 6%</small></label>
                         <input type="number" id="milho_ardidos" class="nav-input" step="0.1">
                     </div>
                     <div class="form-group">
@@ -318,8 +328,7 @@
 
                 <div class="actions">
                     <button class="btn btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
-                    <!-- Botão Dinâmico -->
-                    <button id="btnAction" class="btn btn-action-conclude" onclick="executarAcaoPrincipal()">🔄 Concluir</button>
+                    <button id="btnAction" class="btn btn-action-save" onclick="salvarTemporario()">💾 Salvar Temp.</button>
                 </div>
             </div>
 
@@ -375,21 +384,21 @@
     });
 
     // --- VARIÁVEIS GLOBAIS ---
-    let idEdicaoAtual = null; // Se não for null, estamos editando um salvo
+    let idEdicaoAtual = null;
     let dadosImpressao = {};
 
     const regras = {
-        soja: { umidadeBase: 14.0, umidadeFator: 1.60, ardidosBase: 8.0, esverdeadosBase: 8.0 },
-        milho: { umidadeBase: 14.0, umidadeFator: 1.75, ardidosBase: 6.0 },
-        trigo: { umidadeBase: 13.0, umidadeFator: 1.75 }
+        soja: { umidadeBase: 14.0, ardidosBase: 8.0, esverdeadosBase: 8.0 },
+        milho: { umidadeBase: 14.0, ardidosBase: 6.0 },
+        trigo: { umidadeBase: 13.0 }
     };
 
     // --- INICIALIZAÇÃO ---
     document.addEventListener('DOMContentLoaded', () => {
         renderizarListaSalvos();
         atualizarInterface();
+        verificarEstadoBotao(); // Garante estado inicial correto
         
-        // Navegação com Enter
         const inputs = document.querySelectorAll('.nav-input');
         inputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
@@ -412,23 +421,17 @@
         const tara = getPesoLimpo('tara');
         const btn = document.getElementById('btnAction');
 
-        // Lógica: Se tem UM peso mas não o outro -> Modo Salvar
-        // Se tem OS DOIS pesos -> Modo Concluir
-        // Se não tem NENHUM -> Modo Concluir (mas vai validar vazio)
+        // Lógica: Só vira CONCLUIR se TIVER Bruto E TIVER Tara.
+        // Caso contrário, é sempre SALVAR.
         
-        const temBruto = bruto > 0;
-        const temTara = tara > 0;
-
-        if ((temBruto && !temTara) || (!temBruto && temTara)) {
-            // Modo Salvar Temporário
-            btn.innerText = "💾 Salvar Temp.";
-            btn.className = "btn btn-action-save";
-            btn.onclick = salvarTemporario;
-        } else {
-            // Modo Concluir
+        if (bruto > 0 && tara > 0) {
             btn.innerText = "🔄 Concluir";
             btn.className = "btn btn-action-conclude";
             btn.onclick = concluirRomaneio;
+        } else {
+            btn.innerText = "💾 Salvar Temp.";
+            btn.className = "btn btn-action-save";
+            btn.onclick = salvarTemporario;
         }
     }
 
@@ -443,14 +446,10 @@
         }
 
         const dados = capturarDadosFormulario();
-        // Gera ID único se não estiver editando
         dados.id = idEdicaoAtual || Date.now();
         dados.timestamp = new Date().toLocaleString();
 
-        // Salvar no LocalStorage
         let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
-        
-        // Se estiver editando, remove o antigo para substituir
         if (idEdicaoAtual) {
             salvos = salvos.filter(item => item.id !== idEdicaoAtual);
         }
@@ -465,7 +464,6 @@
 
     function concluirRomaneio() {
         if(confirm("Deseja concluir este romaneio?")) {
-            // Se estava editando um salvo, remove ele da lista pois foi concluído
             if (idEdicaoAtual) {
                 let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
                 salvos = salvos.filter(item => item.id !== idEdicaoAtual);
@@ -496,30 +494,46 @@
             const div = document.createElement('div');
             div.className = 'saved-item';
             
-            // Define qual peso foi salvo
             let infoPeso = '';
             if (item.pesoBruto) infoPeso = `Bruto: ${item.pesoBruto}`;
             if (item.tara) infoPeso = `Tara: ${item.tara}`;
 
             div.innerHTML = `
-                <div class="saved-info">
-                    <strong>${item.produtor || item.motorista || 'Sem Nome'}</strong>
-                    <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
+                <div class="saved-content" onclick="carregarSalvo(${item.id})">
+                    <div class="saved-info">
+                        <strong>${item.produtor || item.motorista || 'Sem Nome'}</strong>
+                        <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
+                    </div>
+                    <div class="saved-badge">${infoPeso}</div>
                 </div>
-                <div class="saved-badge">${infoPeso}</div>
+                <button class="delete-btn" onclick="excluirSalvo(${item.id}, event)">🗑️</button>
             `;
             
-            div.onclick = () => carregarSalvo(item);
             container.appendChild(div);
         });
     }
 
-    function carregarSalvo(item) {
+    function excluirSalvo(id, event) {
+        event.stopPropagation(); // Impede que o clique carregue o item
+        if(!confirm("Tem certeza que deseja excluir este item salvo?")) return;
+
+        let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        salvos = salvos.filter(item => item.id !== id);
+        localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+        
+        renderizarListaSalvos();
+    }
+
+    function carregarSalvo(id) {
+        // Busca o item pelo ID (pois passar o objeto direto no onclick pode dar erro com aspas)
+        const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        const item = salvos.find(i => i.id === id);
+
+        if(!item) return;
         if(!confirm("Carregar dados desta carga pendente?")) return;
 
         idEdicaoAtual = item.id;
         
-        // Preencher campos
         document.getElementById('produtor').value = item.produtor;
         document.getElementById('motorista').value = item.motorista;
         document.getElementById('produto').value = item.produto;
@@ -528,7 +542,6 @@
         document.getElementById('umidade').value = item.umidade;
         document.getElementById('impureza').value = item.impureza;
         
-        // Específicos
         document.getElementById('soja_ardidos').value = item.soja_ardidos;
         document.getElementById('soja_esverdeados').value = item.soja_esverdeados;
         document.getElementById('milho_ardidos').value = item.milho_ardidos;
@@ -538,8 +551,6 @@
 
         atualizarInterface();
         verificarEstadoBotao();
-        
-        // Rola para o topo
         window.scrollTo(0, 0);
     }
 
@@ -631,12 +642,23 @@
                 } else {
                     percDesconto = (excedente * 2.0) - 2.7;
                 }
-            } else {
-                percDesconto = excedente * regra.umidadeFator;
+            } 
+            else if (produto === 'soja') {
+                if (umidadeVal <= 14.5) {
+                    percDesconto = excedente * 1.60;
+                } else if (umidadeVal <= 26.0) {
+                    percDesconto = excedente * 1.65;
+                } else {
+                    percDesconto = excedente * 3.25;
+                }
+            }
+            else if (produto === 'trigo') {
+                percDesconto = excedente * 1.75;
             }
 
             const descKg = pesoCarga * (percDesconto / 100);
-            listaDescontos.push({ nome: `Umidade (${formatDec(umidadeVal)}%)`, perc: percDesconto, kg: descKg });
+            // Removido texto extra, apenas nome e porcentagem
+            listaDescontos.push({ nome: `Umidade`, perc: percDesconto, kg: descKg });
             totalKgDesconto += descKg;
         }
 
@@ -645,14 +667,14 @@
             if (ardidos > regra.ardidosBase) {
                 const perc = ardidos - regra.ardidosBase;
                 const kg = pesoCarga * (perc / 100);
-                listaDescontos.push({ nome: `Ardidos (${formatDec(ardidos)}%)`, perc: perc, kg: kg });
+                listaDescontos.push({ nome: `Ardidos`, perc: perc, kg: kg });
                 totalKgDesconto += kg;
             }
             const esverdeados = getFloat('soja_esverdeados');
             if (esverdeados > regra.esverdeadosBase) {
                 const perc = esverdeados - regra.esverdeadosBase;
                 const kg = pesoCarga * (perc / 100);
-                listaDescontos.push({ nome: `Esverdeados (${formatDec(esverdeados)}%)`, perc: perc, kg: kg });
+                listaDescontos.push({ nome: `Esverdeados`, perc: perc, kg: kg });
                 totalKgDesconto += kg;
             }
         }
@@ -662,7 +684,7 @@
             if (ardidos > regra.ardidosBase) {
                 const perc = ardidos - regra.ardidosBase;
                 const kg = pesoCarga * (perc / 100);
-                listaDescontos.push({ nome: `Ardidos (${formatDec(ardidos)}%)`, perc: perc, kg: kg });
+                listaDescontos.push({ nome: `Ardidos`, perc: perc, kg: kg });
                 totalKgDesconto += kg;
             }
             const brotados = Math.floor(getFloat('milho_brotados'));
