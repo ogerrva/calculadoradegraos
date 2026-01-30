@@ -36,216 +36,162 @@
         .screen-only { display: block; }
         .print-only { display: none; }
 
-        /* CABEÇALHO COM BOTÃO DE HISTÓRICO */
+        /* CABEÇALHO */
         header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; background: white; padding: 15px;
+            border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        
         .header-title h1 { color: var(--dark); margin: 0; font-size: 1.5rem; }
         .header-title p { color: #666; font-size: 0.8rem; margin: 0; }
-
         .btn-history {
-            background: var(--secondary);
-            color: var(--dark);
-            border: 1px solid var(--primary);
-            border-radius: 8px;
-            padding: 10px 15px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-history:hover { background: var(--primary); color: white; }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 20px;
+            background: var(--secondary); color: var(--dark); border: 1px solid var(--primary);
+            border-radius: 8px; padding: 10px 15px; font-size: 1.5rem; cursor: pointer;
         }
 
+        .dashboard { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
         @media (max-width: 850px) { .dashboard { grid-template-columns: 1fr; } }
 
         .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
+            background: var(--card-bg); padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px;
         }
-
-        .card-header {
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            font-size: 1.2rem;
-        }
+        .card-header { font-weight: bold; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
 
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
         .form-group { margin-bottom: 15px; }
-
         label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: #444; }
-
         input, select {
-            width: 100%; padding: 12px; border: 1px solid var(--border);
-            border-radius: 8px; font-size: 16px;
-            box-sizing: border-box; background-color: #fafafa;
-            -webkit-appearance: none;
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px;
+            box-sizing: border-box; background-color: #fafafa; -webkit-appearance: none;
         }
-        input:focus, select:focus {
-            outline: none; border-color: var(--primary); background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.15);
-        }
-
+        input:focus, select:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.15); }
         .input-peso { font-weight: bold; color: var(--dark); letter-spacing: 1px; }
         .integer-only { background-color: #fffde7; }
 
-        .result-row {
-            display: flex; justify-content: space-between; margin-bottom: 12px;
-            padding-bottom: 8px; border-bottom: 1px dashed #eee; font-size: 1rem;
-        }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #eee; font-size: 1rem; }
         .result-row.negative { color: var(--danger); }
 
         .highlight-box {
             background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
-            padding: 20px; border-radius: 12px; text-align: center;
-            margin-top: 25px; border: 1px solid #c5e1a5;
+            padding: 20px; border-radius: 12px; text-align: center; margin-top: 25px; border: 1px solid #c5e1a5;
         }
         .highlight-value { font-size: 2.2rem; font-weight: 800; color: var(--dark); line-height: 1.2; }
         .highlight-label { font-size: 0.8rem; color: #558b2f; text-transform: uppercase; font-weight: bold; }
 
         .actions { margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap; }
         .btn {
-            flex: 1; padding: 15px; border: none; border-radius: 8px;
-            font-size: 1rem; font-weight: bold; cursor: pointer;
-            text-transform: uppercase; color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-width: 120px; transition: background-color 0.3s;
+            flex: 1; padding: 15px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); min-width: 120px;
         }
         .btn-print { background-color: #455a64; }
         .btn-action-conclude { background-color: var(--danger); }
         .btn-action-save { background-color: var(--info); }
-
         .hidden { display: none; }
 
-        /* --- MODAIS PERSONALIZADOS --- */
+        /* MODAIS */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: none;
-            justify-content: center; align-items: center; z-index: 3000;
-            backdrop-filter: blur(3px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px);
         }
         .modal-content {
-            background: white; padding: 25px; border-radius: 15px;
-            text-align: center; width: 90%; max-width: 350px;
+            background: white; padding: 25px; border-radius: 15px; text-align: center; width: 90%; max-width: 350px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            animation: popIn 0.3s ease;
         }
-        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
         .modal-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
         .modal-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; color: #333; }
         .modal-text { color: #666; margin-bottom: 20px; line-height: 1.5; }
-        
         .modal-actions { display: flex; gap: 10px; justify-content: center; }
         .btn-modal { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; flex: 1; }
         .btn-cancel { background: #eee; color: #333; }
         .btn-confirm-danger { background: var(--danger); color: white; }
         .btn-confirm-success { background: var(--primary); color: white; }
 
-        /* --- LISTA DE SALVOS / HISTÓRICO --- */
+        /* LISTA HISTÓRICO */
         .list-container { max-height: 60vh; overflow-y: auto; text-align: left; }
         .saved-item {
-            background: #f9f9f9; border-left: 5px solid #ccc;
-            padding: 12px; margin-bottom: 10px; border-radius: 6px;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: #f9f9f9; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 10px;
+            border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
         .saved-item.pending { border-left-color: var(--info); background: #e3f2fd; }
         .saved-item.history { border-left-color: var(--primary); background: #e8f5e9; }
-        
-        .saved-item:hover { transform: translateX(3px); }
-        
         .saved-info strong { display: block; color: #333; font-size: 1rem; }
         .saved-info small { color: #666; font-size: 0.8rem; }
-        
+        .saved-details { font-size: 0.75rem; color: #444; margin-top: 4px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 4px; }
         .delete-btn {
-            background: #ffcdd2; color: #c62828; border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            font-weight: bold; cursor: pointer; margin-left: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem; transition: background 0.2s;
+            background: #ffcdd2; color: #c62828; border: none; width: 40px; height: 40px; border-radius: 50%;
+            font-weight: bold; cursor: pointer; margin-left: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
         }
-        .delete-btn:hover { background: #ef9a9a; color: white; }
 
-        /* --- TOAST DE INSTALAÇÃO --- */
+        /* TOAST */
         #installToast {
-            position: fixed; bottom: 20px; right: 20px;
-            background-color: #333; color: white;
-            padding: 15px 20px; border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: none; align-items: center; gap: 15px;
-            z-index: 2000;
+            position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white;
+            padding: 15px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none; align-items: center; gap: 15px; z-index: 2000;
         }
-        #installToast button {
-            background: none; border: none; color: #4caf50;
-            font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
-        }
+        #installToast button { background: none; border: none; color: #4caf50; font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase; }
         #installToast .close-toast { color: #aaa; font-size: 1.2rem; margin-left: 10px; cursor: pointer; }
 
-        /* --- IMPRESSÃO OTIMIZADA A5 --- */
+        /* --- IMPRESSÃO A5 OTIMIZADA --- */
         @media print {
-            @page { size: A5 portrait; margin: 0; }
-            body { background-color: white; padding: 0; margin: 0; font-family: Arial, sans-serif; color: #000; }
+            @page {
+                size: A5 portrait; /* Define papel A5 */
+                margin: 0; /* Remove margens do navegador */
+            }
+            
+            body { 
+                background-color: white; 
+                padding: 0; 
+                margin: 0; 
+                font-family: 'Arial', sans-serif; 
+                color: #000;
+                width: 148mm; /* Largura exata A5 */
+                height: 210mm; /* Altura exata A5 */
+            }
+            
             .screen-only { display: none !important; }
             .print-only { display: block !important; }
             
-            .receipt-container { 
-                width: 100%; 
-                /* Remove margens para aproveitar todo o papel */
-                padding: 5mm 8mm; 
-                box-sizing: border-box; 
-                page-break-after: always; 
-                /* Fontes maiores para preencher a folha */
-                font-size: 14pt; 
-                line-height: 1.3;
+            .receipt-container {
+                width: 90%; /* Ocupa 90% da largura do papel */
+                margin: 5% auto; /* Centraliza */
+                padding: 0;
+                box-sizing: border-box;
+                page-break-after: always;
             }
-            
-            .rec-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-            .rec-title { font-size: 20pt; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+            .rec-header { 
+                text-align: center; 
+                border-bottom: 3px solid #000; 
+                padding-bottom: 10px; 
+                margin-bottom: 20px; 
+            }
+            .rec-title { font-size: 18pt; font-weight: 900; text-transform: uppercase; }
             .rec-date { font-size: 12pt; margin-top: 5px; }
-            
+
             table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-            td { padding: 4px 0; vertical-align: bottom; border-bottom: 1px dotted #ccc; }
+            td { padding: 5px 0; vertical-align: bottom; border-bottom: 1px dotted #999; }
             
-            .col-label { text-align: left; font-weight: bold; width: 35%; font-size: 14pt; }
-            .col-val { text-align: right; width: 65%; font-size: 15pt; }
+            .col-label { text-align: left; font-weight: bold; width: 40%; font-size: 12pt; }
+            .col-val { text-align: right; width: 60%; font-size: 14pt; }
             
-            .section-title { 
-                font-size: 16pt; font-weight: 900; text-transform: uppercase; 
-                border-bottom: 2px solid #000; margin-top: 20px; margin-bottom: 10px; 
-                background-color: #ddd !important; -webkit-print-color-adjust: exact;
-                padding: 2px 5px;
+            .section-title {
+                font-size: 14pt; font-weight: 900; text-transform: uppercase;
+                border-bottom: 2px solid #000; margin-top: 20px; margin-bottom: 10px;
+                background-color: #eee !important; -webkit-print-color-adjust: exact;
+                padding: 5px;
             }
-            
-            .total-box { 
-                border: 3px solid #000; padding: 15px; margin-top: 25px; 
-                background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; 
+
+            .total-box {
+                border: 3px solid #000; padding: 15px; margin-top: 20px;
+                background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact;
             }
             .total-row { display: flex; justify-content: space-between; align-items: center; }
-            .total-big { font-size: 24pt; font-weight: 900; }
-            .total-sub { font-size: 18pt; font-weight: bold; }
-            
-            .signature-area { margin-top: 60px; text-align: center; font-size: 12pt; }
-            .signature-line { border-top: 2px solid #000; width: 90%; margin: 0 auto 5px auto; }
+            .total-big { font-size: 22pt; font-weight: 900; }
+            .total-sub { font-size: 16pt; font-weight: bold; }
+
+            .signature-area { margin-top: 50px; text-align: center; font-size: 12pt; }
+            .signature-line { border-top: 2px solid #000; width: 100%; margin: 0 auto 5px auto; }
         }
     </style>
 </head>
@@ -258,15 +204,13 @@
     <span class="close-toast" onclick="document.getElementById('installToast').style.display='none'">&times;</span>
 </div>
 
-<!-- MODAL GENÉRICO (ALERT/CONFIRM) -->
+<!-- MODAL GENÉRICO -->
 <div id="customModal" class="modal-overlay">
     <div class="modal-content">
         <span id="modalIcon" class="modal-icon">⚠️</span>
         <div id="modalTitle" class="modal-title">Atenção</div>
         <div id="modalText" class="modal-text">Mensagem aqui...</div>
-        <div id="modalActions" class="modal-actions">
-            <!-- Botões injetados via JS -->
-        </div>
+        <div id="modalActions" class="modal-actions"></div>
     </div>
 </div>
 
@@ -274,9 +218,7 @@
 <div id="historyModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-title">📜 Histórico de Pesagens</div>
-        <div id="historyList" class="list-container">
-            <!-- Lista injetada via JS -->
-        </div>
+        <div id="historyList" class="list-container"></div>
         <div class="modal-actions" style="margin-top: 20px;">
             <button class="btn-modal btn-cancel" onclick="fecharHistorico()">Fechar</button>
         </div>
@@ -476,34 +418,24 @@
         trigo: { umidadeBase: 13.0 }
     };
 
-    // --- SISTEMA DE MODAIS PERSONALIZADOS ---
+    // --- MODAIS ---
     function showModal(icon, title, text, buttons) {
         const modal = document.getElementById('customModal');
         document.getElementById('modalIcon').innerText = icon;
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalText').innerText = text;
-        
         const actionsDiv = document.getElementById('modalActions');
         actionsDiv.innerHTML = '';
-        
         buttons.forEach(btn => {
             const button = document.createElement('button');
             button.className = `btn-modal ${btn.class}`;
             button.innerText = btn.text;
-            button.onclick = () => {
-                modal.style.display = 'none';
-                if (btn.action) btn.action();
-            };
+            button.onclick = () => { modal.style.display = 'none'; if (btn.action) btn.action(); };
             actionsDiv.appendChild(button);
         });
-        
         modal.style.display = 'flex';
     }
-
-    function showAlert(title, text) {
-        showModal('ℹ️', title, text, [{ text: 'OK', class: 'btn-confirm-success' }]);
-    }
-
+    function showAlert(title, text) { showModal('ℹ️', title, text, [{ text: 'OK', class: 'btn-confirm-success' }]); }
     function showConfirm(title, text, onConfirm, isDanger = false) {
         showModal(isDanger ? '🗑️' : '❓', title, text, [
             { text: 'Cancelar', class: 'btn-cancel' },
@@ -516,8 +448,6 @@
         renderizarListaSalvos();
         atualizarInterface();
         verificarEstadoBotao();
-        
-        // Navegação com Enter
         const inputs = document.querySelectorAll('.nav-input');
         inputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
@@ -537,7 +467,6 @@
         const bruto = getPesoLimpo('pesoBruto');
         const tara = getPesoLimpo('tara');
         const btn = document.getElementById('btnAction');
-
         if (bruto > 0 && tara > 0) {
             btn.innerText = "🔄 Concluir";
             btn.className = "btn btn-action-conclude";
@@ -552,21 +481,14 @@
     function salvarTemporario() {
         const produtor = document.getElementById('produtor').value.trim();
         const motorista = document.getElementById('motorista').value.trim();
+        if (!produtor && !motorista) { showAlert("Falta Identificação", "Para salvar, informe o Nome do Produtor ou Motorista."); return; }
         
-        if (!produtor && !motorista) {
-            showAlert("Falta Identificação", "Para salvar, informe o Nome do Produtor ou Motorista.");
-            return;
-        }
-
         const dados = capturarDadosFormulario();
         dados.id = idEdicaoAtual || Date.now();
         dados.timestamp = new Date().toLocaleString();
 
         let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
-        if (idEdicaoAtual) {
-            salvos = salvos.filter(item => item.id !== idEdicaoAtual);
-        }
-        
+        if (idEdicaoAtual) salvos = salvos.filter(item => item.id !== idEdicaoAtual);
         salvos.push(dados);
         localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
 
@@ -577,29 +499,19 @@
 
     function concluirPesagem() {
         showConfirm("Concluir Pesagem?", "Isso finalizará o romaneio e salvará no histórico.", () => {
-            // Salvar no Histórico Definitivo
+            // Força cálculo para garantir dados atualizados
+            calcular();
+            
             const dados = capturarDadosFormulario();
             dados.id = Date.now();
             dados.timestamp = new Date().toLocaleString();
-            
-            // Recalcula resultados finais para garantir
-            // (A lógica de cálculo já preenche dadosImpressao, mas vamos garantir os valores finais)
-            const bruto = getPesoLimpo('pesoBruto');
-            const tara = getPesoLimpo('tara');
-            const liquido = bruto - tara;
-            // ... (Cálculo simplificado para salvar snapshot)
-            // Idealmente, salvaríamos o objeto 'dadosImpressao' completo se ele estiver atualizado
-            // Vamos forçar um cálculo antes
-            calcular(); 
-            
-            // Adiciona dados calculados ao objeto salvo
-            dados.resultados = { ...dadosImpressao };
+            // Salva o objeto de impressão atual (que foi atualizado pelo calcular())
+            dados.resultados = JSON.parse(JSON.stringify(dadosImpressao)); 
 
             let historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
-            historico.unshift(dados); // Adiciona no topo
+            historico.unshift(dados);
             localStorage.setItem('historicoPesagens', JSON.stringify(historico));
 
-            // Remove dos pendentes se estava editando
             if (idEdicaoAtual) {
                 let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
                 salvos = salvos.filter(item => item.id !== idEdicaoAtual);
@@ -624,12 +536,21 @@
             historico.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'saved-item history';
+                
+                // Dados seguros
+                const res = item.resultados || {};
+                const bruto = res.bruto || 0;
+                const sacasBrutas = res.sacasBrutas || 0;
+                const liquido = res.pesoFinal || 0;
+                const sacasLiquidas = res.sacasFinais || 0;
+
                 div.innerHTML = `
                     <div style="flex:1">
                         <strong>${item.produtor}</strong>
                         <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
-                        <div style="font-size:0.8rem; margin-top:2px">
-                            Liq: ${formatKg(item.resultados.pesoFinal)} kg | ${item.resultados.sacasFinais} sc
+                        <div class="saved-details">
+                            Bruto: ${formatKg(bruto)} kg (${sacasBrutas} sc)<br>
+                            Líq: <b>${formatKg(liquido)} kg (${sacasLiquidas} sc)</b>
                         </div>
                     </div>
                     <button class="btn-history" style="font-size:1rem; padding:5px 10px;" onclick="reimprimirHistorico(${item.id})">🖨️</button>
@@ -640,17 +561,17 @@
         document.getElementById('historyModal').style.display = 'flex';
     }
 
-    function fecharHistorico() {
-        document.getElementById('historyModal').style.display = 'none';
-    }
+    function fecharHistorico() { document.getElementById('historyModal').style.display = 'none'; }
 
     function reimprimirHistorico(id) {
         const historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
         const item = historico.find(i => i.id === id);
-        if (item) {
+        if (item && item.resultados) {
             dadosImpressao = item.resultados;
             fecharHistorico();
             abrirModalImpressao();
+        } else {
+            showAlert("Erro", "Dados de impressão corrompidos ou antigos.");
         }
     }
 
@@ -659,20 +580,14 @@
         const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
         const container = document.getElementById('listaSalvos');
         const card = document.getElementById('cardPendentes');
-
         container.innerHTML = '';
 
-        if (salvos.length === 0) {
-            card.classList.add('hidden');
-            return;
-        }
-
+        if (salvos.length === 0) { card.classList.add('hidden'); return; }
         card.classList.remove('hidden');
         
         salvos.forEach(item => {
             const div = document.createElement('div');
             div.className = 'saved-item pending';
-            
             let infoPeso = '';
             if (item.pesoBruto) infoPeso = `Bruto: ${item.pesoBruto}`;
             if (item.tara) infoPeso = `Tara: ${item.tara}`;
@@ -703,10 +618,7 @@
     function carregarSalvo(id) {
         const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
         const item = salvos.find(i => i.id === id);
-
         if(!item) return;
-        
-        // Carrega sem perguntar (UX mais fluida) ou pode usar showConfirm se preferir
         idEdicaoAtual = item.id;
         
         document.getElementById('produtor').value = item.produtor;
@@ -716,7 +628,6 @@
         document.getElementById('tara').value = item.tara;
         document.getElementById('umidade').value = item.umidade;
         document.getElementById('impureza').value = item.impureza;
-        
         document.getElementById('soja_ardidos').value = item.soja_ardidos;
         document.getElementById('soja_esverdeados').value = item.soja_esverdeados;
         document.getElementById('milho_ardidos').value = item.milho_ardidos;
@@ -753,7 +664,6 @@
         idEdicaoAtual = null;
         atualizarInterface();
         verificarEstadoBotao();
-        // Limpa resultados visuais
         document.getElementById('resPesoCarga').innerText = '0 kg';
         document.getElementById('resSacasBrutas').innerText = '0 sc';
         document.getElementById('resPesoLiquido').innerText = '0 kg';
@@ -786,7 +696,6 @@
         const produto = document.getElementById('produto').value;
         ['spec-soja', 'spec-milho', 'spec-trigo'].forEach(id => document.getElementById(id).classList.add('hidden'));
         document.getElementById('spec-' + produto).classList.remove('hidden');
-        
         const agora = new Date();
         document.getElementById('data-hora').innerText = agora.toLocaleDateString() + ' ' + agora.toLocaleTimeString().slice(0,5);
         calcular();
@@ -818,24 +727,15 @@
             let percDesconto = 0;
 
             if (produto === 'milho') {
-                if (umidadeVal <= 24.8) {
-                    percDesconto = excedente * 1.75;
-                } else {
-                    percDesconto = (excedente * 2.0) - 2.7;
-                }
+                if (umidadeVal <= 24.8) { percDesconto = excedente * 1.75; } 
+                else { percDesconto = (excedente * 2.0) - 2.7; }
             } 
             else if (produto === 'soja') {
-                if (umidadeVal <= 14.5) {
-                    percDesconto = excedente * 1.60;
-                } else if (umidadeVal <= 26.0) {
-                    percDesconto = excedente * 1.65;
-                } else {
-                    percDesconto = excedente * 3.25;
-                }
+                if (umidadeVal <= 14.5) { percDesconto = excedente * 1.60; } 
+                else if (umidadeVal <= 26.0) { percDesconto = excedente * 1.65; } 
+                else { percDesconto = excedente * 3.25; }
             }
-            else if (produto === 'trigo') {
-                percDesconto = excedente * 1.75;
-            }
+            else if (produto === 'trigo') { percDesconto = excedente * 1.75; }
 
             const descKg = pesoCarga * (percDesconto / 100);
             listaDescontos.push({ nome: `Umidade`, perc: percDesconto, kg: descKg });
@@ -912,6 +812,7 @@
             });
         }
 
+        // ATUALIZAÇÃO CRÍTICA: Salva os dados calculados para impressão
         dadosImpressao = {
             produtor: document.getElementById('produtor').value || '---',
             motorista: document.getElementById('motorista').value || '---',
@@ -933,9 +834,7 @@
         document.getElementById('qtdCopias').focus();
     }
 
-    function fecharModalImpressao() {
-        document.getElementById('modalPrint').style.display = 'none';
-    }
+    function fecharModalImpressao() { document.getElementById('modalPrint').style.display = 'none'; }
 
     function confirmarImpressao() {
         const qtd = parseInt(document.getElementById('qtdCopias').value) || 1;
