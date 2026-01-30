@@ -36,9 +36,32 @@
         .screen-only { display: block; }
         .print-only { display: none; }
 
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--dark); margin: 0; font-size: 1.8rem; }
-        p.subtitle { color: #666; font-size: 0.9rem; }
+        /* CABEÇALHO COM BOTÃO DE HISTÓRICO */
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .header-title h1 { color: var(--dark); margin: 0; font-size: 1.5rem; }
+        .header-title p { color: #666; font-size: 0.8rem; margin: 0; }
+
+        .btn-history {
+            background: var(--secondary);
+            color: var(--dark);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-history:hover { background: var(--primary); color: white; }
 
         .dashboard {
             display: grid;
@@ -106,13 +129,62 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             min-width: 120px; transition: background-color 0.3s;
         }
-        .btn-calc { background-color: var(--primary); }
         .btn-print { background-color: #455a64; }
-        
         .btn-action-conclude { background-color: var(--danger); }
         .btn-action-save { background-color: var(--info); }
 
         .hidden { display: none; }
+
+        /* --- MODAIS PERSONALIZADOS --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 3000;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 15px;
+            text-align: center; width: 90%; max-width: 350px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-icon { font-size: 3rem; margin-bottom: 10px; display: block; }
+        .modal-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 10px; color: #333; }
+        .modal-text { color: #666; margin-bottom: 20px; line-height: 1.5; }
+        
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-confirm-danger { background: var(--danger); color: white; }
+        .btn-confirm-success { background: var(--primary); color: white; }
+
+        /* --- LISTA DE SALVOS / HISTÓRICO --- */
+        .list-container { max-height: 60vh; overflow-y: auto; text-align: left; }
+        .saved-item {
+            background: #f9f9f9; border-left: 5px solid #ccc;
+            padding: 12px; margin-bottom: 10px; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .saved-item.pending { border-left-color: var(--info); background: #e3f2fd; }
+        .saved-item.history { border-left-color: var(--primary); background: #e8f5e9; }
+        
+        .saved-item:hover { transform: translateX(3px); }
+        
+        .saved-info strong { display: block; color: #333; font-size: 1rem; }
+        .saved-info small { color: #666; font-size: 0.8rem; }
+        
+        .delete-btn {
+            background: #ffcdd2; color: #c62828; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            font-weight: bold; cursor: pointer; margin-left: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: background 0.2s;
+        }
+        .delete-btn:hover { background: #ef9a9a; color: white; }
 
         /* --- TOAST DE INSTALAÇÃO --- */
         #installToast {
@@ -121,74 +193,59 @@
             padding: 15px 20px; border-radius: 50px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             display: none; align-items: center; gap: 15px;
-            z-index: 2000; animation: slideIn 0.5s ease-out;
+            z-index: 2000;
         }
-        @keyframes slideIn { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
         #installToast button {
             background: none; border: none; color: #4caf50;
             font-weight: bold; font-size: 1rem; cursor: pointer; text-transform: uppercase;
         }
-        #installToast .close-toast { color: #aaa; font-size: 1.2rem; margin-left: 10px; }
+        #installToast .close-toast { color: #aaa; font-size: 1.2rem; margin-left: 10px; cursor: pointer; }
 
-        /* --- LISTA DE SALVOS --- */
-        .saved-item {
-            background: #f5f5f5; border-left: 5px solid var(--info);
-            padding: 10px; margin-bottom: 10px; border-radius: 4px;
-            cursor: pointer; transition: background 0.2s;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .saved-item:hover { background: #e3f2fd; }
-        .saved-content { flex: 1; }
-        .saved-info { font-size: 0.9rem; }
-        .saved-info strong { display: block; color: #333; }
-        .saved-info small { color: #666; }
-        .saved-badge { background: var(--info); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; display: inline-block; margin-top: 4px;}
-        
-        /* Botão Excluir Item */
-        .delete-btn {
-            background: #ffcdd2; color: #c62828; border: none;
-            width: 35px; height: 35px; border-radius: 50%;
-            font-weight: bold; cursor: pointer; margin-left: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
-        }
-        .delete-btn:hover { background: #ef9a9a; }
-
-        /* --- MODAL IMPRESSÃO --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none;
-            justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content {
-            background: white; padding: 30px; border-radius: 10px;
-            text-align: center; width: 90%; max-width: 300px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-
-        /* --- IMPRESSÃO --- */
+        /* --- IMPRESSÃO OTIMIZADA A5 --- */
         @media print {
             @page { size: A5 portrait; margin: 0; }
             body { background-color: white; padding: 0; margin: 0; font-family: Arial, sans-serif; color: #000; }
             .screen-only { display: none !important; }
             .print-only { display: block !important; }
-            .receipt-container { width: 100%; padding: 10mm; box-sizing: border-box; page-break-after: always; font-size: 12pt; }
-            .rec-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-            .rec-title { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
-            .rec-date { font-size: 10pt; margin-top: 5px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-            td { padding: 3px 0; vertical-align: bottom; }
-            .col-label { text-align: left; font-weight: bold; width: 40%; }
-            .col-val { text-align: right; width: 60%; }
-            .section-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #000; margin-top: 10px; margin-bottom: 5px; }
-            .total-box { border: 2px solid #000; padding: 10px; margin-top: 15px; background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            
+            .receipt-container { 
+                width: 100%; 
+                /* Remove margens para aproveitar todo o papel */
+                padding: 5mm 8mm; 
+                box-sizing: border-box; 
+                page-break-after: always; 
+                /* Fontes maiores para preencher a folha */
+                font-size: 14pt; 
+                line-height: 1.3;
+            }
+            
+            .rec-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .rec-title { font-size: 20pt; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+            .rec-date { font-size: 12pt; margin-top: 5px; }
+            
+            table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+            td { padding: 4px 0; vertical-align: bottom; border-bottom: 1px dotted #ccc; }
+            
+            .col-label { text-align: left; font-weight: bold; width: 35%; font-size: 14pt; }
+            .col-val { text-align: right; width: 65%; font-size: 15pt; }
+            
+            .section-title { 
+                font-size: 16pt; font-weight: 900; text-transform: uppercase; 
+                border-bottom: 2px solid #000; margin-top: 20px; margin-bottom: 10px; 
+                background-color: #ddd !important; -webkit-print-color-adjust: exact;
+                padding: 2px 5px;
+            }
+            
+            .total-box { 
+                border: 3px solid #000; padding: 15px; margin-top: 25px; 
+                background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; 
+            }
             .total-row { display: flex; justify-content: space-between; align-items: center; }
-            .total-big { font-size: 18pt; font-weight: bold; }
-            .total-sub { font-size: 14pt; }
-            .signature-area { margin-top: 40px; text-align: center; font-size: 10pt; }
-            .signature-line { border-top: 1px solid #000; width: 80%; margin: 0 auto 5px auto; }
+            .total-big { font-size: 24pt; font-weight: 900; }
+            .total-sub { font-size: 18pt; font-weight: bold; }
+            
+            .signature-area { margin-top: 60px; text-align: center; font-size: 12pt; }
+            .signature-line { border-top: 2px solid #000; width: 90%; margin: 0 auto 5px auto; }
         }
     </style>
 </head>
@@ -201,11 +258,39 @@
     <span class="close-toast" onclick="document.getElementById('installToast').style.display='none'">&times;</span>
 </div>
 
+<!-- MODAL GENÉRICO (ALERT/CONFIRM) -->
+<div id="customModal" class="modal-overlay">
+    <div class="modal-content">
+        <span id="modalIcon" class="modal-icon">⚠️</span>
+        <div id="modalTitle" class="modal-title">Atenção</div>
+        <div id="modalText" class="modal-text">Mensagem aqui...</div>
+        <div id="modalActions" class="modal-actions">
+            <!-- Botões injetados via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE HISTÓRICO -->
+<div id="historyModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-title">📜 Histórico de Pesagens</div>
+        <div id="historyList" class="list-container">
+            <!-- Lista injetada via JS -->
+        </div>
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button class="btn-modal btn-cancel" onclick="fecharHistorico()">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <!-- CONTEÚDO DA TELA -->
 <div class="container screen-only">
     <header>
-        <h1>Romaneio de Classificação</h1>
-        <p class="subtitle">Sistema de Contingência Offline</p>
+        <div class="header-title">
+            <h1>Romaneio de Grãos</h1>
+            <p>Sistema de Contingência Offline</p>
+        </div>
+        <button class="btn-history" onclick="abrirHistorico()" title="Ver Histórico">📜</button>
     </header>
 
     <div class="dashboard">
@@ -236,22 +321,22 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>Peso Bruto (kg)</label>
-                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao()">
+                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao(); calcular()">
                 </div>
                 <div class="form-group">
                     <label>Tara (kg)</label>
-                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao()">
+                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao(); calcular()">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
                     <label>Umidade (%)</label>
-                    <input type="number" id="umidade" class="nav-input" step="0.1" placeholder="0.0">
+                    <input type="number" id="umidade" class="nav-input" step="0.1" placeholder="0.0" oninput="calcular()">
                 </div>
                 <div class="form-group">
                     <label>Impureza (%)</label>
-                    <input type="number" id="impureza" class="nav-input" step="0.1" placeholder="0.0">
+                    <input type="number" id="impureza" class="nav-input" step="0.1" placeholder="0.0" oninput="calcular()">
                 </div>
             </div>
 
@@ -259,39 +344,37 @@
             <div id="campos-especificos">
                 <div id="spec-soja" class="form-row hidden">
                     <div class="form-group">
-                        <label>Ardidos (%) <small>Base 8%</small></label>
-                        <input type="number" id="soja_ardidos" class="nav-input" step="0.1">
+                        <label>Ardidos (%)</label>
+                        <input type="number" id="soja_ardidos" class="nav-input" step="0.1" oninput="calcular()">
                     </div>
                     <div class="form-group">
-                        <label>Esverdeados (%) <small>Base 8%</small></label>
-                        <input type="number" id="soja_esverdeados" class="nav-input" step="0.1">
+                        <label>Esverdeados (%)</label>
+                        <input type="number" id="soja_esverdeados" class="nav-input" step="0.1" oninput="calcular()">
                     </div>
                 </div>
 
                 <div id="spec-milho" class="form-row hidden">
                     <div class="form-group">
-                        <label>Ardidos (%) <small>Base 6%</small></label>
-                        <input type="number" id="milho_ardidos" class="nav-input" step="0.1">
+                        <label>Ardidos (%)</label>
+                        <input type="number" id="milho_ardidos" class="nav-input" step="0.1" oninput="calcular()">
                     </div>
                     <div class="form-group">
                         <label>Brotados (Inteiro)</label>
-                        <input type="number" id="milho_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                        <input type="number" id="milho_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
                     </div>
                 </div>
 
                 <div id="spec-trigo" class="form-row hidden">
                     <div class="form-group">
                         <label>Triguilho (Inteiro)</label>
-                        <input type="number" id="trigo_triguilho" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                        <input type="number" id="trigo_triguilho" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
                     </div>
                     <div class="form-group">
                         <label>Grãos Brotados (Inteiro)</label>
-                        <input type="number" id="trigo_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)">
+                        <input type="number" id="trigo_brotados" class="nav-input integer-only" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
                     </div>
                 </div>
             </div>
-
-            <button class="btn btn-calc" onclick="calcular()">CALCULAR (ENTER)</button>
         </div>
 
         <!-- DIREITA -->
@@ -315,7 +398,7 @@
                 <div style="font-size: 0.9rem; color: #777; margin-bottom: 10px;">Descontos:</div>
 
                 <div id="lista-descontos">
-                    <div style="text-align: center; color: #999; font-style: italic;">Aguardando cálculo...</div>
+                    <div style="text-align: center; color: #999; font-style: italic;">Aguardando dados...</div>
                 </div>
 
                 <div class="highlight-box">
@@ -344,12 +427,12 @@
 <!-- MODAL DE QUANTIDADE DE CÓPIAS -->
 <div id="modalPrint" class="modal-overlay">
     <div class="modal-content">
-        <h3>Imprimir Romaneio</h3>
+        <div class="modal-title">Imprimir Romaneio</div>
         <p>Quantas cópias deseja?</p>
-        <input type="number" id="qtdCopias" value="1" min="1" max="5" style="font-size: 1.5rem; text-align: center; width: 80px;">
+        <input type="number" id="qtdCopias" value="1" min="1" max="5" style="font-size: 1.5rem; text-align: center; width: 80px; margin-bottom: 20px;">
         <div class="modal-actions">
-            <button class="btn btn-reset" onclick="fecharModalImpressao()">Cancelar</button>
-            <button class="btn btn-calc" onclick="confirmarImpressao()">IMPRIMIR</button>
+            <button class="btn-modal btn-cancel" onclick="fecharModalImpressao()">Cancelar</button>
+            <button class="btn-modal btn-confirm-success" onclick="confirmarImpressao()">IMPRIMIR</button>
         </div>
     </div>
 </div>
@@ -358,7 +441,7 @@
 <div id="print-area" class="print-only"></div>
 
 <script>
-    // --- LÓGICA DE INSTALAÇÃO PWA (TOAST) ---
+    // --- LÓGICA DE INSTALAÇÃO PWA ---
     let deferredPrompt;
     const installToast = document.getElementById('installToast');
     const btnInstallConfirm = document.getElementById('btnInstallConfirm');
@@ -393,12 +476,48 @@
         trigo: { umidadeBase: 13.0 }
     };
 
+    // --- SISTEMA DE MODAIS PERSONALIZADOS ---
+    function showModal(icon, title, text, buttons) {
+        const modal = document.getElementById('customModal');
+        document.getElementById('modalIcon').innerText = icon;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalText').innerText = text;
+        
+        const actionsDiv = document.getElementById('modalActions');
+        actionsDiv.innerHTML = '';
+        
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = `btn-modal ${btn.class}`;
+            button.innerText = btn.text;
+            button.onclick = () => {
+                modal.style.display = 'none';
+                if (btn.action) btn.action();
+            };
+            actionsDiv.appendChild(button);
+        });
+        
+        modal.style.display = 'flex';
+    }
+
+    function showAlert(title, text) {
+        showModal('ℹ️', title, text, [{ text: 'OK', class: 'btn-confirm-success' }]);
+    }
+
+    function showConfirm(title, text, onConfirm, isDanger = false) {
+        showModal(isDanger ? '🗑️' : '❓', title, text, [
+            { text: 'Cancelar', class: 'btn-cancel' },
+            { text: 'Confirmar', class: isDanger ? 'btn-confirm-danger' : 'btn-confirm-success', action: onConfirm }
+        ]);
+    }
+
     // --- INICIALIZAÇÃO ---
     document.addEventListener('DOMContentLoaded', () => {
         renderizarListaSalvos();
         atualizarInterface();
-        verificarEstadoBotao(); // Garante estado inicial correto
+        verificarEstadoBotao();
         
+        // Navegação com Enter
         const inputs = document.querySelectorAll('.nav-input');
         inputs.forEach((input, index) => {
             input.addEventListener('keydown', (e) => {
@@ -407,27 +526,22 @@
                     const nextInput = inputs[index + 1];
                     if (nextInput && !nextInput.parentElement.parentElement.classList.contains('hidden')) {
                         nextInput.focus();
-                    } else {
-                        calcular();
                     }
                 }
             });
         });
     });
 
-    // --- LÓGICA DE BOTÃO (SALVAR vs CONCLUIR) ---
+    // --- LÓGICA DE BOTÃO ---
     function verificarEstadoBotao() {
         const bruto = getPesoLimpo('pesoBruto');
         const tara = getPesoLimpo('tara');
         const btn = document.getElementById('btnAction');
 
-        // Lógica: Só vira CONCLUIR se TIVER Bruto E TIVER Tara.
-        // Caso contrário, é sempre SALVAR.
-        
         if (bruto > 0 && tara > 0) {
             btn.innerText = "🔄 Concluir";
             btn.className = "btn btn-action-conclude";
-            btn.onclick = concluirRomaneio;
+            btn.onclick = concluirPesagem;
         } else {
             btn.innerText = "💾 Salvar Temp.";
             btn.className = "btn btn-action-save";
@@ -440,8 +554,7 @@
         const motorista = document.getElementById('motorista').value.trim();
         
         if (!produtor && !motorista) {
-            alert("Para salvar temporariamente, informe o Nome do Produtor ou Motorista.");
-            document.getElementById('produtor').focus();
+            showAlert("Falta Identificação", "Para salvar, informe o Nome do Produtor ou Motorista.");
             return;
         }
 
@@ -457,13 +570,36 @@
         salvos.push(dados);
         localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
 
-        alert("Carga salva temporariamente!");
+        showAlert("Sucesso", "Carga salva temporariamente!");
         limparFormulario();
         renderizarListaSalvos();
     }
 
-    function concluirRomaneio() {
-        if(confirm("Deseja concluir este romaneio?")) {
+    function concluirPesagem() {
+        showConfirm("Concluir Pesagem?", "Isso finalizará o romaneio e salvará no histórico.", () => {
+            // Salvar no Histórico Definitivo
+            const dados = capturarDadosFormulario();
+            dados.id = Date.now();
+            dados.timestamp = new Date().toLocaleString();
+            
+            // Recalcula resultados finais para garantir
+            // (A lógica de cálculo já preenche dadosImpressao, mas vamos garantir os valores finais)
+            const bruto = getPesoLimpo('pesoBruto');
+            const tara = getPesoLimpo('tara');
+            const liquido = bruto - tara;
+            // ... (Cálculo simplificado para salvar snapshot)
+            // Idealmente, salvaríamos o objeto 'dadosImpressao' completo se ele estiver atualizado
+            // Vamos forçar um cálculo antes
+            calcular(); 
+            
+            // Adiciona dados calculados ao objeto salvo
+            dados.resultados = { ...dadosImpressao };
+
+            let historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+            historico.unshift(dados); // Adiciona no topo
+            localStorage.setItem('historicoPesagens', JSON.stringify(historico));
+
+            // Remove dos pendentes se estava editando
             if (idEdicaoAtual) {
                 let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
                 salvos = salvos.filter(item => item.id !== idEdicaoAtual);
@@ -473,9 +609,52 @@
             limparFormulario();
             renderizarListaSalvos();
             window.scrollTo(0, 0);
+        });
+    }
+
+    // --- HISTÓRICO ---
+    function abrirHistorico() {
+        const historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+        const container = document.getElementById('historyList');
+        container.innerHTML = '';
+
+        if (historico.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Nenhuma pesagem concluída.</div>';
+        } else {
+            historico.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'saved-item history';
+                div.innerHTML = `
+                    <div style="flex:1">
+                        <strong>${item.produtor}</strong>
+                        <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
+                        <div style="font-size:0.8rem; margin-top:2px">
+                            Liq: ${formatKg(item.resultados.pesoFinal)} kg | ${item.resultados.sacasFinais} sc
+                        </div>
+                    </div>
+                    <button class="btn-history" style="font-size:1rem; padding:5px 10px;" onclick="reimprimirHistorico(${item.id})">🖨️</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        document.getElementById('historyModal').style.display = 'flex';
+    }
+
+    function fecharHistorico() {
+        document.getElementById('historyModal').style.display = 'none';
+    }
+
+    function reimprimirHistorico(id) {
+        const historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+        const item = historico.find(i => i.id === id);
+        if (item) {
+            dadosImpressao = item.resultados;
+            fecharHistorico();
+            abrirModalImpressao();
         }
     }
 
+    // --- LISTA DE PENDENTES ---
     function renderizarListaSalvos() {
         const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
         const container = document.getElementById('listaSalvos');
@@ -492,46 +671,42 @@
         
         salvos.forEach(item => {
             const div = document.createElement('div');
-            div.className = 'saved-item';
+            div.className = 'saved-item pending';
             
             let infoPeso = '';
             if (item.pesoBruto) infoPeso = `Bruto: ${item.pesoBruto}`;
             if (item.tara) infoPeso = `Tara: ${item.tara}`;
 
             div.innerHTML = `
-                <div class="saved-content" onclick="carregarSalvo(${item.id})">
+                <div class="saved-content" onclick="carregarSalvo(${item.id})" style="flex:1">
                     <div class="saved-info">
                         <strong>${item.produtor || item.motorista || 'Sem Nome'}</strong>
                         <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
                     </div>
                     <div class="saved-badge">${infoPeso}</div>
                 </div>
-                <button class="delete-btn" onclick="excluirSalvo(${item.id}, event)">🗑️</button>
+                <button class="delete-btn" onclick="excluirSalvo(${item.id})">🗑️</button>
             `;
-            
             container.appendChild(div);
         });
     }
 
-    function excluirSalvo(id, event) {
-        event.stopPropagation(); // Impede que o clique carregue o item
-        if(!confirm("Tem certeza que deseja excluir este item salvo?")) return;
-
-        let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
-        salvos = salvos.filter(item => item.id !== id);
-        localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
-        
-        renderizarListaSalvos();
+    function excluirSalvo(id) {
+        showConfirm("Excluir Carga?", "Essa ação não pode ser desfeita.", () => {
+            let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+            salvos = salvos.filter(item => item.id !== id);
+            localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+            renderizarListaSalvos();
+        }, true);
     }
 
     function carregarSalvo(id) {
-        // Busca o item pelo ID (pois passar o objeto direto no onclick pode dar erro com aspas)
         const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
         const item = salvos.find(i => i.id === id);
 
         if(!item) return;
-        if(!confirm("Carregar dados desta carga pendente?")) return;
-
+        
+        // Carrega sem perguntar (UX mais fluida) ou pode usar showConfirm se preferir
         idEdicaoAtual = item.id;
         
         document.getElementById('produtor').value = item.produtor;
@@ -578,6 +753,12 @@
         idEdicaoAtual = null;
         atualizarInterface();
         verificarEstadoBotao();
+        // Limpa resultados visuais
+        document.getElementById('resPesoCarga').innerText = '0 kg';
+        document.getElementById('resSacasBrutas').innerText = '0 sc';
+        document.getElementById('resPesoLiquido').innerText = '0 kg';
+        document.getElementById('resSacasLiquidas').innerText = '0';
+        document.getElementById('lista-descontos').innerHTML = '<div style="text-align:center; color:#999;">Aguardando dados...</div>';
     }
 
     // --- FUNÇÕES AUXILIARES ---
@@ -657,7 +838,6 @@
             }
 
             const descKg = pesoCarga * (percDesconto / 100);
-            // Removido texto extra, apenas nome e porcentagem
             listaDescontos.push({ nome: `Umidade`, perc: percDesconto, kg: descKg });
             totalKgDesconto += descKg;
         }
@@ -722,7 +902,7 @@
         const containerLista = document.getElementById('lista-descontos');
         containerLista.innerHTML = '';
         if (listaDescontos.length === 0) {
-            containerLista.innerHTML = '<div style="text-align:center; color:#888;">Nenhum desconto aplicado.</div>';
+            containerLista.innerHTML = '<div style="text-align:center; color:#999;">Nenhum desconto aplicado.</div>';
         } else {
             listaDescontos.forEach(item => {
                 const div = document.createElement('div');
