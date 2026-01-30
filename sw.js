@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-graos-v9-realtime-history';
+const CACHE_NAME = 'calc-graos-v10-print-fix';
 const ASSETS = [
   './',
   './index.html',
