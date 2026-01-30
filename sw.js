@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calc-graos-v8-delete-btn';
+const CACHE_NAME = 'calc-graos-v9-realtime-history';
 const ASSETS = [
   './',
   './index.html',
