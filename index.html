@@ -224,15 +224,20 @@
                 </select>
             </div>
 
+            <!-- IDENTIFICAÇÃO -->
             <div class="section-divider">👤 Identificação</div>
+            <div class="form-group">
+                <label>Produtor</label>
+                <input type="text" id="produtor" class="nav-input" oninput="verificarEstadoBotao()">
+            </div>
             <div class="form-row">
-                <div class="form-group">
-                    <label>Produtor</label>
-                    <input type="text" id="produtor" class="nav-input" oninput="verificarEstadoBotao()">
-                </div>
                 <div class="form-group">
                     <label>Motorista</label>
                     <input type="text" id="motorista" class="nav-input" oninput="verificarEstadoBotao()">
+                </div>
+                <div class="form-group">
+                    <label>Placa (7 dígitos)</label>
+                    <input type="text" id="placa" class="nav-input" maxlength="7" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); verificarEstadoBotao()">
                 </div>
             </div>
 
@@ -453,7 +458,12 @@
     function salvarTemporario() {
         const produtor = document.getElementById('produtor').value.trim();
         const motorista = document.getElementById('motorista').value.trim();
-        if (!produtor && !motorista) { showAlert("Falta Identificação", "Para salvar, informe o Nome do Produtor ou Motorista."); return; }
+        const placa = document.getElementById('placa').value.trim();
+        
+        if (!produtor && !motorista && !placa) { 
+            showAlert("Falta Identificação", "Para salvar, informe o Produtor, Motorista ou Placa."); 
+            return; 
+        }
         
         const dados = capturarDadosFormulario();
         dados.id = idEdicaoAtual || Date.now();
@@ -515,10 +525,13 @@
                 const isAvulso = item.produto === 'avulso';
                 const textoSacasBrutas = isAvulso ? '' : ` (${sacasBrutas} sc)`;
                 const textoSacasLiq = isAvulso ? '' : ` (${sacasLiquidas} sc)`;
+                
+                const nomeParaExibir = item.produtor || item.motorista || 'Sem Nome';
+                const textoPlaca = item.placa ? ` | 🚗 ${item.placa}` : '';
 
                 div.innerHTML = `
                     <div style="flex:1">
-                        <strong>${item.produtor}</strong>
+                        <strong>${nomeParaExibir}${textoPlaca}</strong>
                         <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
                         <div class="saved-details">
                             Bruto: ${formatKg(bruto)} kg${textoSacasBrutas}<br>
@@ -562,11 +575,14 @@
             let infoPeso = '';
             if (item.pesoBruto) infoPeso = `Bruto: ${item.pesoBruto}`;
             if (item.tara) infoPeso = `Tara: ${item.tara}`;
+            
+            const nomeParaExibir = item.produtor || item.motorista || 'Sem Nome';
+            const textoPlaca = item.placa ? ` | 🚗 ${item.placa}` : '';
 
             div.innerHTML = `
                 <div class="saved-content" onclick="carregarSalvo(${item.id})" style="flex:1">
                     <div class="saved-info">
-                        <strong>${item.produtor || item.motorista || 'Sem Nome'}</strong>
+                        <strong>${nomeParaExibir}${textoPlaca}</strong>
                         <small>${item.produto.toUpperCase()} - ${item.timestamp}</small>
                     </div>
                     <div class="saved-badge">${infoPeso}</div>
@@ -595,6 +611,7 @@
         document.getElementById('produto').value = item.produto;
         document.getElementById('produtor').value = item.produtor;
         document.getElementById('motorista').value = item.motorista;
+        document.getElementById('placa').value = item.placa || '';
         document.getElementById('pesoBruto').value = item.pesoBruto;
         document.getElementById('tara').value = item.tara;
         
@@ -619,6 +636,7 @@
             produto: document.getElementById('produto').value,
             produtor: document.getElementById('produtor').value,
             motorista: document.getElementById('motorista').value,
+            placa: document.getElementById('placa').value,
             pesoBruto: document.getElementById('pesoBruto').value,
             tara: document.getElementById('tara').value,
             umidade: document.getElementById('umidade').value,
@@ -808,6 +826,7 @@
         dadosImpressao = {
             produtor: document.getElementById('produtor').value || '---',
             motorista: document.getElementById('motorista').value || '---',
+            placa: document.getElementById('placa').value || '---',
             produto: produto === 'avulso' ? 'AVULSO' : produto.toUpperCase(),
             bruto: pesoBruto,
             tara: tara,
@@ -872,6 +891,7 @@
                 <table>
                     <tr><td class="col-label">PRODUTOR:</td><td class="col-val" style="text-align:left">${dadosImpressao.produtor}</td></tr>
                     <tr><td class="col-label">MOTORISTA:</td><td class="col-val" style="text-align:left">${dadosImpressao.motorista}</td></tr>
+                    <tr><td class="col-label">PLACA:</td><td class="col-val" style="text-align:left">${dadosImpressao.placa}</td></tr>
                     <tr><td class="col-label">PRODUTO:</td><td class="col-val" style="text-align:left">${dadosImpressao.produto}</td></tr>
                 </table>
                 
