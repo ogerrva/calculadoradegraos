@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2e7d32">
+    <meta name="description" content="Calculadora de Romaneio de Grãos Offline">
+    <title>Calculadora de Grãos</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="img/logo.png">
+
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #f1f8e9;
+            --dark: #1b5e20;
+            --text: #333;
+            --card-bg: #ffffff;
+            --danger: #d32f2f;
+            --info: #0288d1;
+            --border: #ccc;
+        }
+
+        /* 1. ZERA A TELA E PROIBE SCROLL TOTALMENTE */
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f5e9;
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden !important; /* Bloqueia qualquer scroll */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container { 
+            width: 100%; 
+            margin: 0 auto; 
+            display: flex; 
+            flex-direction: column; 
+            flex: 1; 
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .screen-only { display: flex; flex-direction: column; flex: 1; height: 100%; overflow: hidden; }
+        .print-only { display: none; }
+
+        /* CABEÇALHO COMPACTO */
+        header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 12px; background: white; padding: 10px 20px;
+            border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            flex-shrink: 0; height: 60px;
+        }
+        .header-title h1 { color: var(--dark); margin: 0; font-size: 1.4rem; }
+        .header-title p { color: #666; font-size: 0.8rem; margin: 0; }
+        .btn-history {
+            background: var(--secondary); color: var(--dark); border: 1px solid var(--primary);
+            border-radius: 8px; padding: 6px 12px; font-size: 1.2rem; cursor: pointer;
+        }
+
+        /* 2. LAYOUT PRINCIPAL: 70% Formulário / 30% Resultados */
+        .dashboard { 
+            display: grid; 
+            grid-template-columns: 2.4fr 1fr; /* Esquerda larga, Direita estreita */
+            gap: 12px; 
+            flex: 1; 
+            height: calc(100% - 72px);
+            overflow: hidden; 
+        }
+
+        /* COLUNAS E CARTÕES */
+        .left-card { 
+            background: var(--card-bg); border-radius: 12px; padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; 
+            overflow: hidden; height: 100%;
+        }
+
+        .right-col { display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
+        
+        .result-card {
+            background: var(--card-bg); border-radius: 12px; padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; 
+            flex: 1; overflow: hidden;
+        }
+
+        .card-header { 
+            font-weight: bold; color: var(--primary); margin-bottom: 5px; 
+            border-bottom: 2px solid #eee; padding-bottom: 8px; 
+            font-size: 1.1rem; flex-shrink: 0; 
+        }
+
+        /* 3. GRID DO FORMULÁRIO (Horizontal e Distribuído) */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr); /* 12 colunas para fatiar o espaço */
+            column-gap: 15px;
+            flex: 1; /* Ocupa toda altura restante */
+            align-content: space-evenly; /* Distribui os espaços vagos uniformemente na vertical */
+            align-items: end; /* Alinha inputs e labels pela base */
+        }
+
+        /* Classes de tamanho para o Grid */
+        .col-2 { grid-column: span 2; }
+        .col-3 { grid-column: span 3; }
+        .col-4 { grid-column: span 4; }
+        .col-6 { grid-column: span 6; }
+        .col-12 { grid-column: span 12; }
+
+        .form-group { margin: 0; display: flex; flex-direction: column; }
+        label { margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; color: #444; white-space: nowrap; }
+        
+        input, select {
+            width: 100%; height: 42px; padding: 0 10px; border: 1px solid var(--border); 
+            border-radius: 8px; font-size: 15px; background-color: #fafafa; -webkit-appearance: none;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15); }
+        .input-peso { font-weight: bold; color: var(--dark); font-size: 16px; }
+        .highlight-input { border: 2px solid var(--primary); background-color: #f1f8e9; font-weight: bold; }
+        
+        /* LINHA DE DIVISÃO */
+        .section-divider {
+            border-bottom: 1px solid #ddd; font-size: 0.85rem; font-weight: bold; 
+            color: #777; text-transform: uppercase; padding-bottom: 2px; margin-bottom: 0px; 
+            display: flex; align-items: flex-end; height: 30px;
+        }
+
+        /* 4. ÁREA DE RESULTADOS ESTREITA E OTIMIZADA */
+        .result-row { 
+            display: flex; justify-content: space-between; margin-bottom: 8px; 
+            padding-bottom: 6px; border-bottom: 1px dashed #eee; font-size: 0.95rem; flex-shrink: 0; 
+        }
+        .result-row.negative { color: var(--danger); }
+        
+        #lista-descontos { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+            padding: 12px; border-radius: 10px; text-align: center; 
+            margin-top: auto; border: 1px solid #c5e1a5; flex-shrink: 0;
+        }
+        .highlight-value { font-size: 1.6rem; font-weight: 900; color: var(--dark); }
+        .highlight-label { font-size: 0.75rem; color: #558b2f; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+
+        .actions { margin-top: 12px; display: flex; gap: 10px; flex-shrink: 0; }
+        .btn {
+            flex: 1; height: 45px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center;
+        }
+        .btn-print { background-color: #455a64; }
+        .btn-action-conclude { background-color: var(--danger); }
+        .btn-action-save { background-color: var(--info); }
+        .hidden { display: none !important; }
+
+        /* PENDENTES - Tamanho Limitado (Sem Scroll) */
+        #cardPendentes { 
+            background: var(--card-bg); border-radius: 12px; padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); flex: 0 0 auto; max-height: 160px; overflow: hidden; display: flex; flex-direction: column;
+        }
+        #listaSalvos { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 6px; }
+        .saved-item {
+            background: #e3f2fd; border-left: 4px solid var(--info); padding: 8px;
+            border-radius: 6px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; cursor: pointer;
+        }
+        .saved-info strong { display: block; color: #333; font-size: 0.9rem; }
+        .saved-info small { color: #666; font-size: 0.75rem; }
+        .delete-btn {
+            background: #ffcdd2; color: #c62828; border: none; width: 32px; height: 32px; border-radius: 50%;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem;
+        }
+
+        /* MODAIS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 15px; text-align: center; width: 90%; max-width: 350px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; flex-shrink: 0; margin-top: 15px; }
+        .btn-modal { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-confirm-danger { background: var(--danger); color: white; }
+        .btn-confirm-success { background: var(--primary); color: white; }
+        .history-list { flex: 1; overflow-y: auto; text-align: left; max-height: 300px; padding-right: 5px; }
+
+        /* TOAST */
+        #installToast {
+            position: fixed; bottom: 20px; right: 20px; background-color: #333; color: white;
+            padding: 15px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: none; align-items: center; gap: 15px; z-index: 2000;
+        }
+        #installToast button { background: none; border: none; color: #4caf50; font-weight: bold; font-size: 1rem; cursor: pointer; }
+        
+        /* IMPRESSÃO A4 */
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            body { height: auto !important; overflow: visible !important; display: block !important; background-color: white; padding: 0; margin: 0; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            .receipt-container { width: 90%; height: 140mm; margin: 0 auto; padding: 8mm 0; border-bottom: 1px dashed #666; }
+            .receipt-container:nth-child(even) { border-bottom: none; page-break-after: always; }
+            .rec-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 10px; }
+            .rec-title { font-size: 16pt; font-weight: 900; }
+            .rec-date { font-size: 10pt; margin-top: 3px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+            td { padding: 3px 0; border-bottom: 1px dotted #999; font-size: 11pt; }
+            .col-label { font-weight: bold; width: 40%; }
+            .col-val { text-align: right; }
+            .section-title { font-size: 11pt; font-weight: 900; background-color: #eee !important; -webkit-print-color-adjust: exact; padding: 4px; border-bottom: 2px solid #000; }
+            .total-box { border: 2px solid #000; padding: 10px; background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+            .total-row { display: flex; justify-content: space-between; font-size: 14pt; font-weight: 900; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="installToast">
+    <span>Instalar App?</span>
+    <button id="btnInstallConfirm">Instalar</button>
+    <span onclick="document.getElementById('installToast').style.display='none'" style="cursor:pointer; color:#aaa;">&times;</span>
+</div>
+
+<div id="customModal" class="modal-overlay">
+    <div class="modal-content">
+        <span id="modalIcon" style="font-size: 3rem; margin-bottom:10px;">⚠️</span>
+        <div id="modalTitle" style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">Atenção</div>
+        <div id="modalText" style="color:#666; margin-bottom:15px;">Mensagem</div>
+        <div id="modalActions" class="modal-actions"></div>
+    </div>
+</div>
+
+<div id="historyModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <div style="font-size:1.3rem; font-weight:bold; margin-bottom:15px; border-bottom:2px solid #eee; padding-bottom:10px;">📜 Histórico de Pesagens</div>
+        <div id="historyList" class="history-list"></div>
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" onclick="fecharHistorico()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div class="container screen-only">
+    <header>
+        <div class="header-title">
+            <h1>Romaneio de Grãos</h1>
+            <p>Sistema de Contingência Offline</p>
+        </div>
+        <button class="btn-history" onclick="abrirHistorico()" title="Ver Histórico">📜</button>
+    </header>
+
+    <div class="dashboard">
+        <!-- CARTÃO ESQUERDO: Formulário Compacto -->
+        <div class="left-card">
+            <div class="card-header">📝 Dados da Carga</div>
+            
+            <div class="form-grid">
+                
+                <!-- LINHA 1: Identificação GERAL -->
+                <div class="form-group col-3">
+                    <label>Produto *</label>
+                    <select id="produto" class="nav-input highlight-input" onchange="atualizarInterface()">
+                        <option value="soja">🌱 SOJA (14%)</option>
+                        <option value="milho">🌽 MILHO (14%)</option>
+                        <option value="trigo">🌾 TRIGO (13%)</option>
+                        <option value="avulso">📦 AVULSO</option>
+                    </select>
+                </div>
+                <div class="form-group col-4">
+                    <label>Produtor</label>
+                    <input type="text" id="produtor" class="nav-input" oninput="verificarEstadoBotao()">
+                </div>
+                <div class="form-group col-3">
+                    <label>Motorista</label>
+                    <input type="text" id="motorista" class="nav-input" oninput="verificarEstadoBotao()">
+                </div>
+                <div class="form-group col-2">
+                    <label>Placa</label>
+                    <input type="text" id="placa" class="nav-input" maxlength="7" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); verificarEstadoBotao()">
+                </div>
+
+                <!-- DIVISOR PESAGEM -->
+                <div class="section-divider col-12">⚖️ Pesagem Obrigatória</div>
+
+                <!-- LINHA 2: Pesos -->
+                <div class="form-group col-6">
+                    <label>Peso Bruto (kg) *</label>
+                    <input type="tel" id="pesoBruto" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao(); calcular()">
+                </div>
+                <div class="form-group col-6">
+                    <label>Tara (kg) *</label>
+                    <input type="tel" id="tara" class="nav-input input-peso" placeholder="0" onkeyup="mascaraPeso(this); verificarEstadoBotao(); calcular()">
+                </div>
+
+                <!-- DIVISOR DESCONTOS -->
+                <div class="section-divider col-12 div-desc">📉 Descontos e Análises</div>
+
+                <!-- LINHA 3: Descontos Universais e Específicos -->
+                <div class="form-group col-3 desc-item">
+                    <label>Umidade (%)</label>
+                    <input type="number" id="umidade" class="nav-input" step="0.1" placeholder="0.0" oninput="calcular()">
+                </div>
+                <div class="form-group col-3 desc-item">
+                    <label>Impureza (%)</label>
+                    <input type="number" id="impureza" class="nav-input" step="0.1" placeholder="0.0" oninput="calcular()">
+                </div>
+
+                <!-- Alternativos (Soja) -->
+                <div class="form-group col-3 spec-soja hidden">
+                    <label>Ardidos (%)</label>
+                    <input type="number" id="soja_ardidos" class="nav-input" step="0.1" oninput="calcular()">
+                </div>
+                <div class="form-group col-3 spec-soja hidden">
+                    <label>Esverdeados (%)</label>
+                    <input type="number" id="soja_esverdeados" class="nav-input" step="0.1" oninput="calcular()">
+                </div>
+
+                <!-- Alternativos (Milho) -->
+                <div class="form-group col-3 spec-milho hidden">
+                    <label>Ardidos (%)</label>
+                    <input type="number" id="milho_ardidos" class="nav-input" step="0.1" oninput="calcular()">
+                </div>
+                <div class="form-group col-3 spec-milho hidden">
+                    <label>Brotados (Inteiro)</label>
+                    <input type="number" id="milho_brotados" class="nav-input" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
+                </div>
+
+                <!-- Alternativos (Trigo) -->
+                <div class="form-group col-3 spec-trigo hidden">
+                    <label>Triguilho (Inteiro)</label>
+                    <input type="number" id="trigo_triguilho" class="nav-input" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
+                </div>
+                <div class="form-group col-3 spec-trigo hidden">
+                    <label>Grãos Brotados (Inteiro)</label>
+                    <input type="number" id="trigo_brotados" class="nav-input" step="1" onchange="forcarInteiro(this)" oninput="calcular()">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: Resultados & Pendentes -->
+        <div class="right-col">
+            <div class="result-card">
+                <div class="card-header" style="display: flex; justify-content: space-between;">
+                    <span>📊 Resultados</span>
+                    <span style="font-size: 0.75rem; font-weight: normal; margin-top:3px;" id="data-hora"></span>
+                </div>
+
+                <div class="result-row">
+                    <span>Carga Bruta (Bruto-Tara)</span>
+                    <span style="font-weight: bold;" id="resPesoCarga">0 kg</span>
+                </div>
+                <div class="result-row" id="rowSacasBrutas">
+                    <span>Sacas Carga Bruta</span>
+                    <span style="font-weight: bold;" id="resSacasBrutas">0 sc</span>
+                </div>
+
+                <div style="font-size: 0.8rem; color: #777; margin: 5px 0; border-top: 1px solid #eee; padding-top: 8px;">Descontos Aplicados:</div>
+
+                <div id="lista-descontos">
+                    <div style="text-align: center; color: #bbb; font-size: 0.9rem; margin-top: 5px;">Aguardando dados...</div>
+                </div>
+
+                <div class="highlight-box">
+                    <div class="highlight-label">PESO LÍQUIDO FINAL</div>
+                    <div class="highlight-value" id="resPesoLiquido">0 kg</div>
+                    <div id="boxSacasLiquidas" style="margin-top: 2px; font-size: 1.2rem; font-weight: bold; color: var(--dark);">
+                        <span id="resSacasLiquidas">0</span> Sacas
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-print" onclick="abrirModalImpressao()">🖨️ Imprimir</button>
+                    <button id="btnAction" class="btn btn-action-save" onclick="salvarTemporario()">💾 Temp.</button>
+                </div>
+            </div>
+
+            <div id="cardPendentes" class="hidden">
+                <div class="card-header" style="font-size: 0.9rem; margin-bottom: 8px; padding-bottom:4px;">💾 Pendentes (Lim. 2)</div>
+                <div id="listaSalvos"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalPrint" class="modal-overlay">
+    <div class="modal-content">
+        <div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">Imprimir Romaneio</div>
+        <p style="color:#666; margin-bottom: 5px;">Quantas cópias deseja?</p>
+        <p style="font-size: 0.75rem; color: #999; margin-bottom: 15px;">(2 cópias cabem em 1 folha A4)</p>
+        <input type="number" id="qtdCopias" value="1" min="1" max="5" style="font-size: 1.5rem; text-align: center; height: 50px; width: 100px; margin: 0 auto;">
+        <div class="modal-actions">
+            <button class="btn-modal btn-cancel" onclick="document.getElementById('modalPrint').style.display='none'">Cancelar</button>
+            <button class="btn-modal btn-confirm-success" onclick="confirmarImpressao()">IMPRIMIR</button>
+        </div>
+    </div>
+</div>
+
+<div id="print-area" class="print-only"></div>
+
+<script>
+    let deferredPrompt;
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); deferredPrompt = e; document.getElementById('installToast').style.display = 'flex';
+    });
+    document.getElementById('btnInstallConfirm').addEventListener('click', () => {
+        document.getElementById('installToast').style.display = 'none';
+        if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; }); }
+    });
+
+    let idEdicaoAtual = null;
+    let dadosImpressao = {};
+
+    const regras = {
+        soja: { umidadeBase: 14.0, ardidosBase: 8.0, esverdeadosBase: 8.0 },
+        milho: { umidadeBase: 14.0, ardidosBase: 6.0 },
+        trigo: { umidadeBase: 13.0 },
+        avulso: {}
+    };
+
+    function showModal(icon, title, text, buttons) {
+        const modal = document.getElementById('customModal');
+        document.getElementById('modalIcon').innerText = icon;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalText').innerText = text;
+        const actionsDiv = document.getElementById('modalActions');
+        actionsDiv.innerHTML = '';
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = `btn-modal ${btn.class}`;
+            button.innerText = btn.text;
+            button.onclick = () => { modal.style.display = 'none'; if (btn.action) btn.action(); };
+            actionsDiv.appendChild(button);
+        });
+        modal.style.display = 'flex';
+    }
+    function showAlert(title, text) { showModal('ℹ️', title, text, [{ text: 'OK', class: 'btn-confirm-success' }]); }
+    function showConfirm(title, text, onConfirm, isDanger = false) {
+        showModal(isDanger ? '🗑️' : '❓', title, text, [
+            { text: 'Cancelar', class: 'btn-cancel' },
+            { text: 'Confirmar', class: isDanger ? 'btn-confirm-danger' : 'btn-confirm-success', action: onConfirm }
+        ]);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderizarListaSalvos();
+        atualizarInterface();
+        verificarEstadoBotao();
+        const inputs = document.querySelectorAll('.nav-input');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    let next = index + 1;
+                    while(inputs[next] && inputs[next].closest('.hidden')) { next++; }
+                    if (inputs[next]) inputs[next].focus();
+                }
+            });
+        });
+    });
+
+    function verificarEstadoBotao() {
+        const bruto = getPesoLimpo('pesoBruto');
+        const tara = getPesoLimpo('tara');
+        const btn = document.getElementById('btnAction');
+        if (bruto > 0 && tara > 0) {
+            btn.innerText = "🔄 Concluir";
+            btn.className = "btn btn-action-conclude";
+            btn.onclick = concluirPesagem;
+        } else {
+            btn.innerText = "💾 Temp.";
+            btn.className = "btn btn-action-save";
+            btn.onclick = salvarTemporario;
+        }
+    }
+
+    function salvarTemporario() {
+        const produtor = document.getElementById('produtor').value.trim();
+        const motorista = document.getElementById('motorista').value.trim();
+        const placa = document.getElementById('placa').value.trim();
+        
+        if (!produtor && !motorista && !placa) { 
+            showAlert("Identificação Vazia", "Preencha Produtor, Motorista ou Placa."); return; 
+        }
+        
+        const dados = capturarDadosFormulario();
+        dados.id = idEdicaoAtual || Date.now();
+        dados.timestamp = new Date().toLocaleString();
+
+        let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        if (idEdicaoAtual) salvos = salvos.filter(item => item.id !== idEdicaoAtual);
+        salvos.unshift(dados); // Adiciona sempre no topo
+        localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+
+        limparFormulario();
+        renderizarListaSalvos();
+    }
+
+    function concluirPesagem() {
+        showConfirm("Concluir Pesagem?", "O romaneio será salvo no histórico.", () => {
+            calcular();
+            const dados = capturarDadosFormulario();
+            dados.id = Date.now();
+            dados.timestamp = new Date().toLocaleString();
+            dados.resultados = JSON.parse(JSON.stringify(dadosImpressao)); 
+
+            let historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+            historico.unshift(dados);
+            localStorage.setItem('historicoPesagens', JSON.stringify(historico));
+
+            if (idEdicaoAtual) {
+                let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+                salvos = salvos.filter(item => item.id !== idEdicaoAtual);
+                localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+            }
+            limparFormulario();
+            renderizarListaSalvos();
+        });
+    }
+
+    function abrirHistorico() {
+        const historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+        const container = document.getElementById('historyList');
+        container.innerHTML = '';
+        if (historico.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Sem histórico.</div>'; } 
+        else {
+            historico.forEach(item => {
+                const div = document.createElement('div');
+                div.style.cssText = "background:#f9f9f9; border-left:4px solid var(--primary); padding:10px; margin-bottom:8px; border-radius:6px; display:flex; justify-content:space-between;";
+                const res = item.resultados || {};
+                const bruto = res.bruto || 0;
+                const liquido = res.pesoFinal || 0;
+                const isAvulso = item.produto === 'avulso';
+                const sBrutas = isAvulso ? '' : ` (${res.sacasBrutas||0}sc)`;
+                const sLiq = isAvulso ? '' : ` (${res.sacasFinais||0}sc)`;
+                const nome = item.produtor || item.motorista || 'Sem Nome';
+                const p = item.placa ? ` | ${item.placa}` : '';
+                div.innerHTML = `
+                    <div style="flex:1; line-height:1.3;">
+                        <strong style="font-size:0.95rem;">${nome}${p}</strong><br>
+                        <small style="color:#777; font-size:0.75rem;">${item.produto.toUpperCase()} - ${item.timestamp}</small>
+                        <div style="font-size:0.8rem; margin-top:4px;">Bruto: ${formatKg(bruto)}kg${sBrutas} | Líq: <b>${formatKg(liquido)}kg${sLiq}</b></div>
+                    </div>
+                    <button class="btn-history" style="font-size:1.1rem; border:none; background:#e8f5e9; padding:0 12px;" onclick="reimprimirHistorico(${item.id})">🖨️</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        document.getElementById('historyModal').style.display = 'flex';
+    }
+    function fecharHistorico() { document.getElementById('historyModal').style.display = 'none'; }
+
+    function reimprimirHistorico(id) {
+        const historico = JSON.parse(localStorage.getItem('historicoPesagens') || '[]');
+        const item = historico.find(i => i.id === id);
+        if (item && item.resultados) {
+            dadosImpressao = item.resultados;
+            fecharHistorico();
+            document.getElementById('modalPrint').style.display = 'flex';
+        }
+    }
+
+    function renderizarListaSalvos() {
+        const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        const container = document.getElementById('listaSalvos');
+        const card = document.getElementById('cardPendentes');
+        container.innerHTML = '';
+        if (salvos.length === 0) { card.classList.add('hidden'); return; }
+        card.classList.remove('hidden');
+        
+        salvos.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'saved-item';
+            const nome = item.produtor || item.motorista || 'Sem Nome';
+            const info = (item.pesoBruto) ? `Bruto: ${item.pesoBruto}` : 'S/ Peso';
+            div.innerHTML = `
+                <div onclick="carregarSalvo(${item.id})" style="flex:1">
+                    <div class="saved-info">
+                        <strong>${nome} ${item.placa ? `| ${item.placa}` : ''}</strong>
+                        <small>${item.produto.toUpperCase()} - ${info}</small>
+                    </div>
+                </div>
+                <button class="delete-btn" onclick="excluirSalvo(${item.id})">🗑️</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function excluirSalvo(id) {
+        showConfirm("Excluir Carga?", "Essa ação não pode ser desfeita.", () => {
+            let salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+            salvos = salvos.filter(item => item.id !== id);
+            localStorage.setItem('cargasPendentes', JSON.stringify(salvos));
+            if(idEdicaoAtual === id) limparFormulario();
+            renderizarListaSalvos();
+        }, true);
+    }
+
+    function carregarSalvo(id) {
+        const salvos = JSON.parse(localStorage.getItem('cargasPendentes') || '[]');
+        const item = salvos.find(i => i.id === id);
+        if(!item) return;
+        idEdicaoAtual = item.id;
+        document.getElementById('produto').value = item.produto;
+        document.getElementById('produtor').value = item.produtor;
+        document.getElementById('motorista').value = item.motorista;
+        document.getElementById('placa').value = item.placa || '';
+        document.getElementById('pesoBruto').value = item.pesoBruto;
+        document.getElementById('tara').value = item.tara;
+        if (item.produto !== 'avulso') {
+            document.getElementById('umidade').value = item.umidade || '';
+            document.getElementById('impureza').value = item.impureza || '';
+            document.getElementById('soja_ardidos').value = item.soja_ardidos || '';
+            document.getElementById('soja_esverdeados').value = item.soja_esverdeados || '';
+            document.getElementById('milho_ardidos').value = item.milho_ardidos || '';
+            document.getElementById('milho_brotados').value = item.milho_brotados || '';
+            document.getElementById('trigo_triguilho').value = item.trigo_triguilho || '';
+            document.getElementById('trigo_brotados').value = item.trigo_brotados || '';
+        }
+        atualizarInterface();
+        verificarEstadoBotao();
+    }
+
+    function capturarDadosFormulario() {
+        return {
+            produto: document.getElementById('produto').value,
+            produtor: document.getElementById('produtor').value,
+            motorista: document.getElementById('motorista').value,
+            placa: document.getElementById('placa').value,
+            pesoBruto: document.getElementById('pesoBruto').value,
+            tara: document.getElementById('tara').value,
+            umidade: document.getElementById('umidade').value,
+            impureza: document.getElementById('impureza').value,
+            soja_ardidos: document.getElementById('soja_ardidos').value,
+            soja_esverdeados: document.getElementById('soja_esverdeados').value,
+            milho_ardidos: document.getElementById('milho_ardidos').value,
+            milho_brotados: document.getElementById('milho_brotados').value,
+            trigo_triguilho: document.getElementById('trigo_triguilho').value,
+            trigo_brotados: document.getElementById('trigo_brotados').value
+        };
+    }
+
+    function limparFormulario() {
+        document.querySelectorAll('input').forEach(i => i.value = '');
+        document.getElementById('produto').selectedIndex = 0;
+        idEdicaoAtual = null;
+        atualizarInterface();
+        verificarEstadoBotao();
+        document.getElementById('resPesoCarga').innerText = '0 kg';
+        document.getElementById('resSacasBrutas').innerText = '0 sc';
+        document.getElementById('resPesoLiquido').innerText = '0 kg';
+        document.getElementById('resSacasLiquidas').innerText = '0';
+        document.getElementById('lista-descontos').innerHTML = '<div style="text-align:center; color:#bbb; font-size:0.9rem;">Aguardando dados...</div>';
+    }
+
+    function mascaraPeso(input) { input.value = input.value.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+    function getPesoLimpo(id) { return parseInt(document.getElementById(id).value.replace(/\./g, '')) || 0; }
+    function getFloat(id) { return parseFloat(document.getElementById(id).value.replace(',', '.')) || 0; }
+    function forcarInteiro(input) { input.value = Math.floor(input.value); }
+    function formatKg(num) { return num.toLocaleString('pt-BR'); }
+    function formatDec(num) { return num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function atualizarInterface() {
+        const produto = document.getElementById('produto').value;
+        const rowSacas = document.getElementById('rowSacasBrutas');
+        const boxSacas = document.getElementById('boxSacasLiquidas');
+        
+        document.querySelectorAll('.spec-soja, .spec-milho, .spec-trigo').forEach(e => e.classList.add('hidden'));
+        
+        if (produto === 'avulso') {
+            document.querySelectorAll('.desc-item, .div-desc').forEach(e => e.classList.add('hidden'));
+            rowSacas.classList.add('hidden'); boxSacas.classList.add('hidden');
+        } else {
+            document.querySelectorAll('.desc-item, .div-desc').forEach(e => e.classList.remove('hidden'));
+            document.querySelectorAll('.spec-' + produto).forEach(e => e.classList.remove('hidden'));
+            rowSacas.classList.remove('hidden'); boxSacas.classList.remove('hidden');
+        }
+
+        const h = new Date(); document.getElementById('data-hora').innerText = h.toLocaleDateString() + ' ' + h.toLocaleTimeString().slice(0,5);
+        calcular();
+    }
+
+    function calcular() {
+        const p = document.getElementById('produto').value;
+        const b = getPesoLimpo('pesoBruto');
+        const t = getPesoLimpo('tara');
+        let carga = b - t; if (carga < 0) carga = 0;
+        let descontos = [], kgDesc = 0;
+
+        if (p !== 'avulso') {
+            const imp = getFloat('impureza');
+            if (imp > 0) { const kg = carga * (imp/100); descontos.push({n: "Impureza", p: imp, k: kg}); kgDesc+=kg; }
+
+            const um = getFloat('umidade'), r = regras[p];
+            if (r && um > r.umidadeBase) {
+                const exc = um - r.umidadeBase; let perc = 0;
+                if (p === 'milho') perc = um <= 24.8 ? exc * 1.75 : (exc * 2.0) - 2.7;
+                else if (p === 'soja') perc = um <= 14.5 ? exc * 1.6 : (um <= 26.0 ? exc * 1.65 : exc * 3.25);
+                else if (p === 'trigo') perc = exc * 1.75;
+                const kg = carga * (perc/100); descontos.push({n: "Umidade", p: perc, k: kg}); kgDesc+=kg;
+            }
+
+            if (p === 'soja') {
+                const ard = getFloat('soja_ardidos'); if (ard > r.ardidosBase) { const perc=ard-r.ardidosBase; const kg=carga*(perc/100); descontos.push({n:"Ardidos",p:perc,k:kg}); kgDesc+=kg;}
+                const esv = getFloat('soja_esverdeados'); if (esv > r.esverdeadosBase) { const perc=esv-r.esverdeadosBase; const kg=carga*(perc/100); descontos.push({n:"Esverdeados",p:perc,k:kg}); kgDesc+=kg;}
+            } else if (p === 'milho') {
+                const ard = getFloat('milho_ardidos'); if (ard > r.ardidosBase) { const perc=ard-r.ardidosBase; const kg=carga*(perc/100); descontos.push({n:"Ardidos",p:perc,k:kg}); kgDesc+=kg;}
+                const bro = Math.floor(getFloat('milho_brotados')); if (bro > 0) { const kg=carga*(bro/100); descontos.push({n:"Brotados",p:bro,k:kg}); kgDesc+=kg;}
+            } else if (p === 'trigo') {
+                const tri = Math.floor(getFloat('trigo_triguilho')); if (tri > 0) { const kg=carga*(tri/100); descontos.push({n:"Triguilho",p:tri,k:kg}); kgDesc+=kg;}
+                const bro = Math.floor(getFloat('trigo_brotados')); if (bro > 0) { const kg=carga*(bro/100); descontos.push({n:"Brotados",p:bro,k:kg}); kgDesc+=kg;}
+            }
+        }
+
+        const liq = carga - kgDesc;
+        const sBrut = Math.round(carga/60);
+        const sLiq = Math.round(liq/60);
+
+        document.getElementById('resPesoCarga').innerText = formatKg(carga) + ' kg';
+        document.getElementById('resSacasBrutas').innerText = sBrut + ' sc';
+        document.getElementById('resPesoLiquido').innerText = formatKg(liq) + ' kg';
+        document.getElementById('resSacasLiquidas').innerText = sLiq;
+
+        const lista = document.getElementById('lista-descontos'); lista.innerHTML = '';
+        if (p === 'avulso') lista.innerHTML = '<div style="text-align:center; color:#bbb; font-size:0.9rem; margin-top:5px;">Isento</div>';
+        else if (descontos.length === 0) lista.innerHTML = '<div style="text-align:center; color:#bbb; font-size:0.9rem; margin-top:5px;">Nenhum desconto.</div>';
+        else descontos.forEach(d => {
+            const div = document.createElement('div'); div.className = 'result-row negative';
+            div.innerHTML = `<span>${d.n} <small>(${formatDec(d.p)}%)</small></span><span>- ${formatKg(d.k)} kg</span>`;
+            lista.appendChild(div);
+        });
+
+        dadosImpressao = {
+            produtor: document.getElementById('produtor').value || '---', motorista: document.getElementById('motorista').value || '---',
+            placa: document.getElementById('placa').value || '---', produto: p === 'avulso' ? 'AVULSO' : p.toUpperCase(),
+            bruto: b, tara: t, liquido: carga, sacasBrutas: sBrut, descontos: descontos, pesoFinal: liq, sacasFinais: sLiq,
+            data: document.getElementById('data-hora').innerText
+        };
+    }
+
+    function abrirModalImpressao() { calcular(); document.getElementById('modalPrint').style.display = 'flex'; document.getElementById('qtdCopias').focus(); }
+    function confirmarImpressao() {
+        const qtd = parseInt(document.getElementById('qtdCopias').value) || 1;
+        const area = document.getElementById('print-area'); area.innerHTML = '';
+        const isAvulso = dadosImpressao.produto === 'AVULSO';
+
+        const tpl = `
+            <div class="receipt-container">
+                <div class="rec-header">
+                    <div class="rec-title">ROMANEIO DE CLASSIFICAÇÃO</div>
+                    <div class="rec-date">${dadosImpressao.data}</div>
+                </div>
+                <table>
+                    <tr><td class="col-label">PRODUTOR:</td><td class="col-val">${dadosImpressao.produtor}</td></tr>
+                    <tr><td class="col-label">MOTORISTA:</td><td class="col-val">${dadosImpressao.motorista}</td></tr>
+                    <tr><td class="col-label">PLACA / PRODUTO:</td><td class="col-val">${dadosImpressao.placa} / ${dadosImpressao.produto}</td></tr>
+                </table>
+                <div class="section-title">PESAGEM</div>
+                <table>
+                    <tr><td class="col-label">PESO BRUTO:</td><td class="col-val">${formatKg(dadosImpressao.bruto)} kg</td></tr>
+                    <tr><td class="col-label">TARA:</td><td class="col-val">${formatKg(dadosImpressao.tara)} kg</td></tr>
+                    <tr><td class="col-label">PESO CARGA:</td><td class="col-val" style="font-weight:bold">${formatKg(dadosImpressao.liquido)} kg</td></tr>
+                    ${isAvulso?'':`<tr><td class="col-label">SACAS CARGA:</td><td class="col-val">${dadosImpressao.sacasBrutas} sc</td></tr>`}
+                </table>
+                <div class="section-title">DESCONTOS</div>
+                <table>
+                    ${isAvulso ? '<tr><td colspan="2" style="text-align:center">- Isento -</td></tr>' : (dadosImpressao.descontos.length===0 ? '<tr><td colspan="2" style="text-align:center">- Sem Descontos -</td></tr>' : '')}
+                    ${dadosImpressao.descontos.map(d => `<tr><td class="col-label">${d.n} (${formatDec(d.p)}%)</td><td class="col-val">- ${formatKg(d.k)} kg</td></tr>`).join('')}
+                </table>
+                <div class="total-box">
+                    <div class="total-row"><span style="font-size:12pt">LÍQUIDO:</span><span>${formatKg(dadosImpressao.pesoFinal)} kg</span></div>
+                    ${isAvulso?'':`<div class="total-row" style="margin-top:5px"><span>TOTAL:</span><span>${dadosImpressao.sacasFinais} SC</span></div>`}
+                </div>
+                <div style="margin-top:30px; text-align:center; font-size:10pt; border-top:1px solid #000; width:80%; margin:30px auto 0 auto; padding-top:5px;">Assinatura do Responsável</div>
+            </div>`;
+        for (let i = 0; i < qtd; i++) area.innerHTML += tpl;
+        document.getElementById('modalPrint').style.display = 'none';
+        window.print();
+    }
+</script>
+
+</body>
+</html>
